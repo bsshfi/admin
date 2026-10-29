@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#111318">
+<title>إدارة ومض آرك</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23111318'/%3E%3Cpath d='M19 2.5c.4 2.4.7 2.7 3 3-2.3.4-2.6.7-3 3-.4-2.3-.7-2.6-3-3 2.3-.3 2.6-.6 3-3z' fill='%23FF5A1F'/%3E%3Cpath d='M3 18c4-7 9-11 16-12' fill='none' stroke='%23F2EFEA' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+:root{--bg:#111318;--card:#1A1D24;--card2:#22262F;--line:rgba(255,255,255,.08);--text:#F2EFEA;--muted:#9AA0AD;--accent:#FF5A1F;--ok:#5BC08A;--bad:#E5675A;--warn:#E8B04B;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,'SF Arabic','Geeza Pro',system-ui,sans-serif;font-size:16px;line-height:1.6}
+main{max-width:620px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 20px) 16px 60px}
+header{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+header svg{width:28px;height:28px;flex:none}
+h1{font-size:21px;margin:0;flex:1}
+h1 small{display:block;font-size:12px;color:var(--muted);font-weight:400;letter-spacing:.2em;direction:ltr;text-align:right}
+section{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-top:14px}
+h2{font-size:15px;margin:0 0 10px;color:var(--muted);font-weight:500;display:flex;align-items:center;gap:8px}
+h2 .sp{flex:1}
+label{display:block;font-size:14px;color:var(--muted);margin:12px 0 6px}
+input[type=text],input[type=password],textarea{width:100%;font:inherit;font-size:16px;color:var(--text);background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px}
+textarea{min-height:92px;resize:vertical}
+input:focus,textarea:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button{font:inherit;cursor:pointer;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--text);padding:10px 14px}
+.ghost{background:transparent;color:var(--muted);font-size:13px;padding:6px 10px}
+.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;width:100%;padding:14px;margin-top:16px;font-size:16px}
+.primary:disabled{opacity:.5}
+.row{display:flex;gap:8px;align-items:center}
+.row input{flex:1}
+.status{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 10px;direction:ltr}
+.pill i{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.pill.ok i{background:var(--ok)}.pill.bad i{background:var(--bad)}.pill.warn i{background:var(--warn)}
+.apps{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.app{background:var(--card2);border-radius:14px;padding:12px;border:1px solid var(--line)}
+.app .hd{display:flex;align-items:center;gap:8px}
+.app .hd b{font-size:16px;flex:1}
+.app .hd a{color:var(--muted);font-size:12px;text-decoration:none;direction:ltr}
+.app .big{font-size:28px;font-weight:700;line-height:1.2;margin-top:6px}
+.app .sub{font-size:12px;color:var(--muted)}
+.app .ex{font-size:12px;color:var(--muted);margin-top:6px;border-top:1px solid var(--line);padding-top:6px}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}
+.pick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.pk{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;border-radius:14px;background:var(--card2);border:1.5px solid var(--line);cursor:pointer;user-select:none;text-align:center}
+.pk input{position:absolute;opacity:0}
+.pk b{font-size:15px}
+.pk span{font-size:11px;color:var(--muted)}
+.pk:has(input:checked){border-color:var(--accent);background:rgba(255,90,31,.1)}
+.pk:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
+.pk:has(input:disabled){opacity:.4;cursor:not-allowed}
+.tpl{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.tpl button{font-size:13px;padding:7px 11px;border-radius:999px}
+details summary{cursor:pointer;color:var(--muted);font-size:14px;margin-top:14px}
+.preview{margin-top:16px;background:rgba(120,120,140,.22);border-radius:20px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start}
+.preview .ic{width:38px;height:38px;border-radius:9px;flex:none}
+.preview .t{font-weight:600;font-size:15px}
+.preview .f{font-size:13px;color:var(--muted)}
+.preview .b{font-size:14px;margin-top:2px;white-space:pre-line}
+.note{font-size:13px;color:var(--muted);margin:10px 0 0}
+.msg{margin-top:12px;font-size:14px;padding:10px 12px;border-radius:12px;display:none;white-space:pre-line}
+.msg.on{display:block}.msg.ok{background:rgba(91,192,138,.12);color:var(--ok)}.msg.bad{background:rgba(229,103,90,.12);color:var(--bad)}
+.hist{list-style:none;margin:0;padding:0}
+.hist li{padding:10px 0;border-top:1px solid var(--line);font-size:14px;display:flex;gap:10px;align-items:flex-start}
+.hist li:first-child{border-top:0}
+.hist li .dot{margin-top:7px}
+.hist span{color:var(--muted);font-size:12px;display:block}
+.links{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.links a{display:block;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:var(--text);text-decoration:none;font-size:14px}
+.links a span{display:block;color:var(--muted);font-size:12px;direction:ltr;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+[hidden]{display:none!important}
+@media (max-width:420px){.pick{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18c4-7 9-11 16-12" fill="none" stroke="#F2EFEA" stroke-width="1.4" stroke-linecap="round" opacity=".7"/><path d="M19 2.5c.4 2.4.7 2.7 3 3-2.3.4-2.6.7-3 3-.4-2.3-.7-2.6-3-3 2.3-.3 2.6-.6 3-3z" fill="#FF5A1F"/></svg>
+    <h1>لوحة الإدارة<small>WAMD ARC</small></h1>
+    <button class="ghost" id="logout" hidden>خروج</button>
+  </header>
+  <div class="status" id="status"></div>
+
+  <section id="login">
+    <h2>مفتاح الإدارة</h2>
+    <div class="row"><input type="password" id="key" autocomplete="current-password" placeholder="ADMIN_KEY" aria-label="مفتاح الإدارة"><button id="keyGo">دخول</button></div>
+    <p class="note">نفس قيمة ADMIN_KEY في الخادمين (push-wamdarc و siraj-api). تنحفظ على هذا الجهاز فقط.</p>
+    <div class="msg" id="loginMsg"></div>
+  </section>
+
+  <div id="panel" hidden>
+    <section>
+      <h2>التطبيقات<span class="sp"></span><button class="ghost" id="refresh">تحديث ↻</button></h2>
+      <div class="apps" id="apps"></div>
+    </section>
+
+    <section>
+      <h2>إرسال إشعار</h2>
+      <div class="pick" id="pick"></div>
+      <label>قوالب جاهزة</label>
+      <div class="tpl">
+        <button data-tpl="fitr">عيد الفطر</button><button data-tpl="adha">عيد الأضحى</button><button data-tpl="ramadan">رمضان</button><button data-tpl="national">اليوم الوطني</button><button data-tpl="update">تحديث جديد</button><button data-tpl="stories">قصص جديدة (سِراج)</button>
+      </div>
+      <label for="arT">العنوان</label>
+      <input type="text" id="arT" maxlength="80" placeholder="مثلاً: عيدكم مبارك">
+      <label for="arB">النص</label>
+      <textarea id="arB" maxlength="300" placeholder="مثلاً: كل عام وأنتم بخير، تقبّل الله منا ومنكم"></textarea>
+      <details>
+        <summary>نص إنجليزي لمن لغة تطبيقه إنجليزي (فلق وسهم وخطى، اختياري)</summary>
+        <label for="enT">Title</label><input type="text" id="enT" maxlength="80" dir="ltr">
+        <label for="enB">Message</label><textarea id="enB" maxlength="300" dir="ltr"></textarea>
+      </details>
+      <div class="preview" aria-hidden="true"><div class="ic" id="pvI"></div><div><div class="t" id="pvT">العنوان</div><div class="f" id="pvF">from فَلَق</div><div class="b" id="pvB">النص</div></div></div>
+      <button class="primary" id="send">إرسال</button>
+      <div class="msg" id="sendMsg"></div>
+      <p class="note">تصل الرسالة لكل من فعّل الإشعارات في التطبيقات المختارة. لا ترسل كثيراً، فكثرة الرسائل تجعل الناس يقفلون الإشعارات.</p>
+    </section>
+
+    <section>
+      <h2>آخر الرسائل</h2>
+      <ul class="hist" id="hist"></ul>
+    </section>
+
+    <section>
+      <h2>روابط سريعة</h2>
+      <div class="links">
+        <a href="https://dash.cloudflare.com/" target="_blank" rel="noopener">Cloudflare<span>dash.cloudflare.com</span></a>
+        <a href="https://github.com/bsshfi?tab=repositories" target="_blank" rel="noopener">GitHub<span>github.com/bsshfi</span></a>
+        <a href="https://wamdarc.com" target="_blank" rel="noopener">الموقع<span>wamdarc.com</span></a>
+        <a href="https://push-wamdarc.bsshfi.workers.dev/" target="_blank" rel="noopener">خادم الإشعارات<span>push-wamdarc</span></a>
+      </div>
+    </section>
+  </div>
+</main>
+<script>
+(function () {
+  'use strict';
+  var $ = function (s) { return document.querySelector(s); };
+  var PUSH = 'https://push-wamdarc.bsshfi.workers.dev';
+  var SIRAJ = 'https://siraj-api.bsshfi.workers.dev';
+  var APPS = [
+    { id: 'falaq', name: 'فَلَق', url: 'falaq.wamdarc.com', color: '#E0A060', srv: 'push' },
+    { id: 'sahm', name: 'سهم', url: 'sahm.wamdarc.com', color: '#5BC08A', srv: 'push' },
+    { id: 'khuta', name: 'خُطى', url: 'khuta.wamdarc.com', color: '#4DB8F0', srv: 'push' },
+    { id: 'siraj', name: 'سِراج', url: 'siraj.wamdarc.com', color: '#8E44C9', srv: 'siraj' }
+  ];
+  var BY = {}; APPS.forEach(function (a) { BY[a.id] = a; });
+  var KEY = ''; try { KEY = localStorage.getItem('wamd-admin') || ''; } catch (e) {}
+  var kind = 'news', data = { push: null, siraj: null };
+  var TPL = {
+    fitr: { arT: 'عيدكم مبارك 🌙', arB: 'عيد فطر سعيد، تقبّل الله منا ومنكم صالح الأعمال. كل عام وأنتم بخير.', enT: 'Eid Mubarak 🌙', enB: 'Wishing you a blessed Eid al-Fitr. May Allah accept from us and from you.' },
+    adha: { arT: 'عيد أضحى مبارك 🐑', arB: 'تقبّل الله منا ومنكم، وكل عام وأنتم بخير.', enT: 'Eid al-Adha Mubarak', enB: 'May Allah accept from us and from you. Wishing you a blessed Eid.' },
+    ramadan: { arT: 'رمضان كريم 🌙', arB: 'مبارك عليكم الشهر، أعاننا الله وإياكم على صيامه وقيامه.', enT: 'Ramadan Kareem 🌙', enB: 'Wishing you a blessed Ramadan.' },
+    national: { arT: 'يوم وطني سعيد 🇸🇦', arB: 'كل عام والوطن بخير وعزّ، دام عزّك يا وطن.', enT: 'Happy National Day 🇸🇦', enB: 'Wishing our nation continued glory and prosperity.' },
+    update: { arT: 'تحديث جديد ✨', arB: 'وصلت نسخة جديدة. افتح التطبيق ليتحدّث تلقائياً.', enT: 'New update ✨', enB: 'A new version is here. Open the app to update automatically.' },
+    stories: { arT: 'قصص جديدة في سِراج 📚', arB: 'أضفنا حكايات جديدة لأطفالكم. افتحوا سِراج الليلة واكتشفوها 🌙', enT: '', enB: '', only: ['siraj'] }
+  };
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function show(el, cls, txt) { el.className = 'msg on ' + cls; el.textContent = txt; }
+  function api(base, path, opt) {
+    opt = opt || {};
+    opt.headers = Object.assign({ Authorization: 'Bearer ' + encodeURIComponent(KEY) }, opt.headers || {});
+    return fetch(base + path, opt).then(function (r) {
+      return r.text().then(function (t) {
+        var j = {}; try { j = JSON.parse(t); } catch (e) { j = { error: 'http-' + r.status, detail: t.slice(0, 160) }; }
+        if (!r.ok) { j.status = r.status; throw j; }
+        return j;
+      });
+    }, function () { throw { error: 'network' }; });
+  }
+  function errText(e) {
+    if (!e) return 'خطأ غير معروف.';
+    if (e.error === 'no-key') return 'ما انضاف ADMIN_KEY في إعدادات هذا الخادم بعد.';
+    if (e.error === 'unauthorized' || e.error === 'forbidden') return 'المفتاح غير صحيح لهذا الخادم.';
+    if (e.error === 'network') return 'تعذّر الاتصال بالخادم.';
+    return 'خطأ (' + (e.status || '') + '): ' + (e.error || '') + (e.detail ? ' — ' + e.detail : '');
+  }
+
+  function pill(name, state, txt) { return '<span class="pill ' + state + '"><i></i>' + esc(name) + (txt ? ' · ' + esc(txt) : '') + '</span>'; }
+  function drawStatus(res) {
+    $('#status').innerHTML = pill('push-wamdarc', res.push.ok ? 'ok' : 'bad', res.push.ok ? 'متصل' : 'غير متصل') +
+      pill('siraj-api', res.siraj.ok ? 'ok' : 'bad', res.siraj.ok ? 'متصل' : 'غير متصل');
+  }
+
+  function load() {
+    var res = { push: {}, siraj: {} };
+    var p1 = api(PUSH, '/stats').then(function (j) { res.push = { ok: true, j: j }; }, function (e) { res.push = { ok: false, e: e }; });
+    var p2 = api(SIRAJ, '/stats').then(function (j) { res.siraj = { ok: true, j: j }; }, function (e) { res.siraj = { ok: false, e: e }; });
+    return Promise.all([p1, p2]).then(function () {
+      drawStatus(res);
+      if (!res.push.ok && !res.siraj.ok) throw res.push.e || res.siraj.e;
+      data.push = res.push.ok ? res.push.j : null;
+      data.siraj = res.siraj.ok ? res.siraj.j : null;
+      $('#login').hidden = true; $('#panel').hidden = false; $('#logout').hidden = false;
+      render(res);
+      return res;
+    });
+  }
+
+  function render(res) {
+    var counts = {};
+    ((data.push && data.push.apps) || []).forEach(function (a) { counts[a.app] = a.n; });
+    if (data.siraj) counts.siraj = data.siraj.subs;
+    $('#apps').innerHTML = APPS.map(function (a) {
+      var up = a.srv === 'push' ? !!data.push : !!data.siraj;
+      var ex = '';
+      if (a.id === 'siraj' && data.siraj) ex = '<div class="ex">👨‍👩‍👧 ' + data.siraj.families + ' عائلة · 📱 ' + (data.siraj.devices || 0) + ' جهاز (' + (data.siraj.activeWeek || 0) + ' نشط هالأسبوع)<br>🔔 ' + (data.siraj.parentDevices || 0) + ' وليّ أمر · ' + (data.siraj.kidDevices || 0) + ' طفل</div>';
+      if (!up) ex = '<div class="ex" style="color:var(--bad)">' + esc(errText(a.srv === 'push' ? res.push.e : res.siraj.e)) + '</div>';
+      return '<div class="app"><div class="hd"><span class="dot" style="background:' + a.color + '"></span><b>' + a.name + '</b><a href="https://' + a.url + '" target="_blank" rel="noopener">↗</a></div>' +
+        '<div class="big">' + (up ? (counts[a.id] || 0) : '—') + '</div><div class="sub">مشترك في الإشعارات</div>' + ex + '</div>';
+    }).join('');
+    var keep = {}; document.querySelectorAll('.pk input').forEach(function (i) { keep[i.value] = i.checked; });
+    $('#pick').innerHTML = APPS.map(function (a) {
+      var up = a.srv === 'push' ? !!data.push : !!data.siraj;
+      var on = a.id in keep ? keep[a.id] : true;
+      return '<label class="pk"><input type="checkbox" value="' + a.id + '"' + (on && up ? ' checked' : '') + (up ? '' : ' disabled') + '><b>' + a.name + '</b><span>' + (up ? (counts[a.id] || 0) + ' مشترك' : 'غير متصل') + '</span></label>';
+    }).join('');
+    document.querySelectorAll('.pk input').forEach(function (i) { i.onchange = preview; });
+    var hist = [];
+    ((data.push && data.push.history) || []).forEach(function (m) {
+      var b = {}; try { b = JSON.parse(m.body); } catch (e) {}
+      hist.push({ t: m.created, title: (b.ar || {}).title || '', apps: m.apps.split(','), total: m.total });
+    });
+    ((data.siraj && data.siraj.history) || []).forEach(function (m) { hist.push({ t: m.created, title: m.title, apps: ['siraj'], total: m.total }); });
+    hist.sort(function (a, b) { return b.t - a.t; });
+    $('#hist').innerHTML = hist.slice(0, 12).map(function (m) {
+      var c = (BY[m.apps[0]] || {}).color || '#888';
+      return '<li><span class="dot" style="background:' + c + '"></span><div>' + esc(m.title) + '<span>' + new Date(m.t).toLocaleString('ar-SA-u-nu-latn', { dateStyle: 'medium', timeStyle: 'short' }) + ' · ' +
+        m.apps.map(function (a) { return (BY[a] || {}).name || a; }).join('، ') + ' · ' + m.total + ' مستلم</span></div></li>';
+    }).join('') || '<li><span>لم ترسل رسائل بعد</span></li>';
+    preview();
+  }
+
+  function login() {
+    KEY = $('#key').value.trim();
+    if (!KEY) return;
+    load().then(function () { try { localStorage.setItem('wamd-admin', KEY); } catch (e) {} })
+      .catch(function (e) { show($('#loginMsg'), 'bad', errText(e)); });
+  }
+  $('#keyGo').onclick = login;
+  $('#key').onkeydown = function (e) { if (e.key === 'Enter') login(); };
+  $('#refresh').onclick = function () { load().catch(function () {}); };
+  $('#logout').onclick = function () { try { localStorage.removeItem('wamd-admin'); } catch (e) {} location.reload(); };
+  if (KEY) load().catch(function () { $('#login').hidden = false; });
+
+  function checked() { return [].slice.call(document.querySelectorAll('.pk input:checked')).map(function (i) { return i.value; }); }
+  function preview() {
+    var apps = checked(), a = BY[apps[0]] || APPS[0];
+    $('#pvT').textContent = $('#arT').value || 'العنوان';
+    $('#pvB').textContent = $('#arB').value || 'النص';
+    $('#pvF').textContent = 'from ' + a.name + (apps.length > 1 ? ' (+' + (apps.length - 1) + ')' : '');
+    $('#pvI').style.background = a.color;
+  }
+  ['#arT', '#arB'].forEach(function (s) { $(s).oninput = preview; });
+  document.querySelectorAll('[data-tpl]').forEach(function (b) {
+    b.onclick = function () {
+      var t = TPL[b.dataset.tpl];
+      kind = b.dataset.tpl === 'update' ? 'update' : 'news';
+      ['arT', 'arB', 'enT', 'enB'].forEach(function (k) { $('#' + k).value = t[k]; });
+      document.querySelectorAll('.pk input:not(:disabled)').forEach(function (i) { i.checked = !t.only || t.only.indexOf(i.value) >= 0; });
+      preview();
+    };
+  });
+
+  $('#send').onclick = function () {
+    var apps = checked(), t = $('#arT').value.trim(), b = $('#arB').value.trim();
+    if (!apps.length) return show($('#sendMsg'), 'bad', 'اختر تطبيقاً واحداً على الأقل.');
+    if (!t) return show($('#sendMsg'), 'bad', 'اكتب عنوان الرسالة.');
+    if (!confirm('إرسال «' + t + '» إلى مشتركي ' + apps.map(function (a) { return BY[a].name; }).join(' و') + '؟')) return;
+    var btn = $('#send'); btn.disabled = true;
+    var pushApps = apps.filter(function (a) { return BY[a].srv === 'push'; }), jobs = [], out = [];
+    if (pushApps.length) jobs.push(api(PUSH, '/broadcast', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apps: pushApps, kind: kind, ar: { title: t, body: b }, en: { title: $('#enT').value.trim(), body: $('#enB').value.trim() } }) })
+      .then(function (r) { out.push('✓ ' + pushApps.map(function (a) { return BY[a].name; }).join(' و') + ': ' + (r.queued ? r.queued + ' مشترك، يكتمل خلال ' + Math.ceil(r.queued / r.perTick) + ' دقيقة تقريباً' : 'ما فيه مشتركين')); },
+        function (e) { out.push('✗ فلق/سهم/خطى: ' + errText(e)); }));
+    if (apps.indexOf('siraj') >= 0) jobs.push(api(SIRAJ, '/broadcast', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ar: { title: t, body: b } }) })
+      .then(function (r) { out.push('✓ سِراج: ' + (r.sent ? r.sent + ' جهاز' : 'ما فيه مشتركين')); }, function (e) { out.push('✗ سِراج: ' + errText(e)); }));
+    Promise.all(jobs).then(function () {
+      show($('#sendMsg'), out.some(function (x) { return x[0] === '✗'; }) ? 'bad' : 'ok', out.join('\n'));
+      load().catch(function () {});
+    }).then(function () { btn.disabled = false; });
+  };
+})();
+</script>
+</body>
+</html>
