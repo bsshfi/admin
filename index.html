@@ -11,7 +11,7 @@
 :root{--bg:#111318;--card:#1A1D24;--card2:#22262F;--line:rgba(255,255,255,.08);--text:#F2EFEA;--muted:#9AA0AD;--accent:#FF5A1F;--ok:#5BC08A;--bad:#E5675A;--warn:#E8B04B;color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,'SF Arabic','Geeza Pro',system-ui,sans-serif;font-size:16px;line-height:1.6}
-main{max-width:620px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 20px) 16px 60px}
+main{margin:0 auto;padding:calc(env(safe-area-inset-top) + 20px) 16px 60px}
 header{display:flex;align-items:center;gap:10px;margin-bottom:6px}
 header svg{width:28px;height:28px;flex:none}
 h1{font-size:21px;margin:0;flex:1}
@@ -70,6 +70,54 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px;margin-top:14px
 .links a{display:block;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:var(--text);text-decoration:none;font-size:14px}
 .links a span{display:block;color:var(--muted);font-size:12px;direction:ltr;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 [hidden]{display:none!important}
+main{max-width:980px}
+.tabs{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px;margin-top:14px;position:sticky;top:8px;z-index:5;backdrop-filter:blur(10px)}
+.tabs button{flex:1;border:0;background:transparent;color:var(--muted);padding:9px;border-radius:10px;font-size:15px}
+.tabs button.on{background:var(--card2);color:var(--text);font-weight:600}
+.narrow{max-width:620px;margin:0 auto}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
+.kpi b{display:block;font-size:30px;line-height:1.15;font-variant-numeric:tabular-nums}
+.kpi span{font-size:13px;color:var(--muted)}
+.kpi.live b{color:var(--ok)}
+.live-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--ok);margin-inline-end:6px;box-shadow:0 0 0 0 rgba(91,192,138,.6);animation:pulse 1.8s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 9px rgba(91,192,138,0)}100%{box-shadow:0 0 0 0 rgba(91,192,138,0)}}
+.acards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.acard{background:var(--card2);border:1px solid var(--line);border-radius:16px;padding:14px}
+.acard .hd{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.acard .hd b{flex:1;font-size:17px}
+.acard .hd em{font-style:normal;font-size:12px;color:var(--ok);display:flex;align-items:center}
+.acard .hd em.off{color:var(--muted)}
+.m4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center}
+.m4 div{background:rgba(255,255,255,.03);border-radius:10px;padding:6px 2px}
+.m4 b{display:block;font-size:19px;font-variant-numeric:tabular-nums}
+.m4 span{font-size:11px;color:var(--muted)}
+.bar{height:8px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden;display:flex;margin-top:4px}
+.bar i{display:block;height:100%}
+.kv{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-top:10px}
+.kv b{color:var(--text);font-weight:500}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:9px;height:9px;border-radius:3px;display:inline-block}
+.chart{width:100%;height:auto;display:block;margin-top:6px}
+.chart text{fill:var(--muted);font-size:10px;font-family:inherit}
+.feed{list-style:none;margin:0;padding:0}
+.feed li{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:14px}
+.feed li:first-child{border-top:0}
+.feed .who{flex:1;min-width:0}
+.feed .who small{display:block;color:var(--muted);font-size:12px}
+.feed .tag{font-size:11px;border-radius:999px;padding:2px 8px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.feed .tag.inst{color:var(--ok);border-color:rgba(91,192,138,.35)}
+.feed .when{font-size:12px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.feed .when.now{color:var(--ok)}
+.pages{list-style:none;margin:0;padding:0}
+.pages li{display:grid;grid-template-columns:1fr auto;gap:8px;font-size:14px;padding:6px 0}
+.pages li span{direction:ltr;text-align:right;color:var(--muted)}
+.pages .bar{grid-column:1/-1;margin-top:0}
+.cols{display:grid;grid-template-columns:1.4fr 1fr;gap:14px}
+.cols section{margin-top:0}
+.setup{background:rgba(232,176,75,.1);border:1px solid rgba(232,176,75,.35);color:var(--warn);border-radius:14px;padding:12px 14px;font-size:14px}
+@media (max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}.cols{grid-template-columns:1fr}}
 @media (max-width:420px){.pick{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
@@ -90,6 +138,36 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px;margin-top:14px
   </section>
 
   <div id="panel" hidden>
+    <nav class="tabs" role="tablist"><button class="on" data-tab="stats" role="tab">📊 الإحصائيات</button><button data-tab="notif" role="tab">🔔 الإشعارات</button></nav>
+
+    <div id="v-stats">
+      <div id="statsSetup" class="setup" hidden style="margin-top:14px"></div>
+      <section style="background:none;border:0;padding:0">
+        <div class="kpis" id="kpis"></div>
+      </section>
+      <section>
+        <h2>التطبيقات والموقع<span class="sp"></span><span id="updated" style="font-size:12px"></span><button class="ghost" id="refresh2">تحديث ↻</button></h2>
+        <div class="acards" id="acards"></div>
+      </section>
+      <section>
+        <h2>الأجهزة النشطة يومياً — آخر ٣٠ يوم</h2>
+        <svg class="chart" id="chart" viewBox="0 0 640 200" role="img" aria-label="رسم النشاط اليومي"></svg>
+        <div class="legend" id="legend"></div>
+      </section>
+      <div class="cols" style="margin-top:14px">
+        <section>
+          <h2>آخر النشاط</h2>
+          <ul class="feed" id="feed"></ul>
+        </section>
+        <section>
+          <h2>أكثر صفحات الموقع زيارة — ٣٠ يوم</h2>
+          <ul class="pages" id="pages"></ul>
+          <p class="note">كل جهاز يُعدّ مرة لكل تطبيق، بمعرّف عشوائي مجهول. «مثبّت» = فُتح من الشاشة الرئيسية ولو مرة.</p>
+        </section>
+      </div>
+    </div>
+
+    <div id="v-notif" class="narrow" hidden>
     <section>
       <h2>التطبيقات<span class="sp"></span><button class="ghost" id="refresh">تحديث ↻</button></h2>
       <div class="apps" id="apps"></div>
@@ -131,6 +209,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px;margin-top:14px
         <a href="https://push-wamdarc.bsshfi.workers.dev/" target="_blank" rel="noopener">خادم الإشعارات<span>push-wamdarc</span></a>
       </div>
     </section>
+    </div>
   </div>
 </main>
 <script>
@@ -184,6 +263,98 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px;margin-top:14px
       pill('siraj-api', res.siraj.ok ? 'ok' : 'bad', res.siraj.ok ? 'متصل' : 'غير متصل');
   }
 
+  /* ---------- الإحصائيات ---------- */
+  var SA = [{ id: 'site', name: 'الموقع', url: 'wamdarc.com', color: '#B9BEC6' }].concat(APPS);
+  var SBY = {}; SA.forEach(function (a) { SBY[a.id] = a; });
+  var PL = { ios: 'آيفون', android: 'أندرويد', desktop: 'كمبيوتر', other: 'أخرى' };
+  var PLC = { ios: '#F2EFEA', android: '#5BC08A', desktop: '#4DB8F0', other: '#666' };
+  var fmt = function (n) { return (n || 0).toLocaleString('en-US'); };
+  function ago(t, now) {
+    var s = Math.max(0, Math.round((now - t) / 1000));
+    if (s < 150) return 'الآن';
+    if (s < 3600) return 'قبل ' + Math.round(s / 60) + ' د';
+    if (s < 86400) return 'قبل ' + Math.round(s / 3600) + ' س';
+    return 'قبل ' + Math.round(s / 86400) + ' يوم';
+  }
+  function byApp(list) { var o = {}; (list || []).forEach(function (r) { o[r.app] = r; }); return o; }
+  function loadStats() {
+    return api(PUSH, '/analytics').then(function (j) { $('#statsSetup').hidden = true; renderStats(j); }, function (e) {
+      var el = $('#statsSetup'); el.hidden = false;
+      el.textContent = e && e.status === 404 ? 'الإحصائيات تحتاج تحديث كود خادم push-wamdarc مرة وحدة (الخطوات في رسالة Claude). بعدها تبدأ الأرقام تظهر تلقائياً.' : errText(e);
+    });
+  }
+  function renderStats(j) {
+    var now = j.now, T = byApp(j.totals), A = byApp(j.active), subsP = {};
+    (j.subs || []).forEach(function (r) { subsP[r.app] = r.n; });
+    if (data.siraj) subsP.siraj = data.siraj.subs;
+    var sum = function (k, src) { return SA.reduce(function (n, a) { return n + (((src || T)[a.id] || {})[k] || 0); }, 0); };
+    var appsOnly = function (k, src) { return APPS.reduce(function (n, a) { return n + (((src || T)[a.id] || {})[k] || 0); }, 0); };
+    $('#kpis').innerHTML =
+      '<div class="kpi live"><b><span class="live-dot"></span>' + fmt(sum('online')) + '</b><span>متصل الآن</span></div>' +
+      '<div class="kpi"><b>' + fmt(sum('today', A)) + '</b><span>زائر اليوم (كل التطبيقات)</span></div>' +
+      '<div class="kpi"><b>' + fmt(appsOnly('inst')) + '</b><span>تثبيت على الشاشة الرئيسية</span></div>' +
+      '<div class="kpi"><b>' + fmt(sum('new_today')) + '</b><span>جهاز جديد اليوم</span></div>';
+    $('#updated').textContent = 'آخر تحديث ' + new Date(now).toLocaleTimeString('ar-SA-u-nu-latn', { hour: 'numeric', minute: '2-digit' });
+    var plat = {}; (j.plat || []).forEach(function (r) { (plat[r.app] = plat[r.app] || []).push(r); });
+    var ver = {}; (j.ver || []).forEach(function (r) { (ver[r.app] = ver[r.app] || []).push(r); });
+    $('#acards').innerHTML = SA.map(function (a) {
+      var t = T[a.id] || {}, ac = A[a.id] || {}, total = t.total || 0, inst = t.inst || 0;
+      var pl = plat[a.id] || [], pTot = pl.reduce(function (n, r) { return n + r.n; }, 0) || 1;
+      var bar = pl.sort(function (x, y) { return y.n - x.n; }).map(function (r) { return '<i style="width:' + (r.n / pTot * 100) + '%;background:' + PLC[r.plat] + '" title="' + PL[r.plat] + ' ' + r.n + '"></i>'; }).join('');
+      var plTxt = pl.map(function (r) { return PL[r.plat] + ' ' + r.n; }).join(' · ') || '—';
+      var v = (ver[a.id] || [])[0];
+      var online = t.online || 0;
+      return '<div class="acard"><div class="hd"><span class="dot" style="background:' + a.color + '"></span><b>' + a.name + '</b>' +
+        '<em class="' + (online ? '' : 'off') + '">' + (online ? '<span class="live-dot"></span>' + online + ' متصل' : 'لا أحد متصل') + '</em></div>' +
+        '<div class="m4"><div><b>' + fmt(ac.today) + '</b><span>اليوم</span></div><div><b>' + fmt(ac.d7) + '</b><span>٧ أيام</span></div><div><b>' + fmt(ac.d30) + '</b><span>٣٠ يوم</span></div><div><b>' + fmt(total) + '</b><span>كل الأجهزة</span></div></div>' +
+        (a.id === 'site' ? '<div class="kv"><span>مرات الفتح</span><b>' + fmt(t.opens) + '</b></div>' :
+          '<div class="kv"><span>مثبّت على الشاشة</span><b>' + fmt(inst) + ' من ' + fmt(total) + (total ? ' (' + Math.round(inst / total * 100) + '%)' : '') + '</b></div>' +
+          '<div class="bar"><i style="width:' + (total ? inst / total * 100 : 0) + '%;background:' + a.color + '"></i></div>' +
+          '<div class="kv"><span>🔔 الإشعارات</span><b>' + fmt(subsP[a.id]) + (inst ? ' (' + Math.round((subsP[a.id] || 0) / Math.max(inst, 1) * 100) + '% من المثبّتين)' : '') + '</b></div>') +
+        '<div class="kv"><span>الأجهزة</span><b>' + plTxt + '</b></div><div class="bar">' + bar + '</div>' +
+        (v ? '<div class="kv"><span>أكثر إصدار</span><b dir="ltr">v' + esc(v.ver) + ' · ' + v.n + '</b></div>' : '') + '</div>';
+    }).join('');
+    // الرسم: أعمدة مكدّسة لكل يوم
+    var days = []; for (var i = 29; i >= 0; i--) days.push(new Date(now - i * 864e5 + 3 * 36e5).toISOString().slice(0, 10));
+    var grid = {}; (j.series || []).forEach(function (r) { (grid[r.day] = grid[r.day] || {})[r.app] = r.n; });
+    var max = Math.max(1, Math.max.apply(null, days.map(function (d) { return SA.reduce(function (n, a) { return n + ((grid[d] || {})[a.id] || 0); }, 0); })));
+    var W = 640, H = 200, L = 28, B = 22, cw = (W - L - 6) / 30, svg = '';
+    var step = Math.max(1, Math.ceil(max / 4));
+    for (var y = 0; y <= max; y += step) { var yy = H - B - (y / max) * (H - B - 10); svg += '<line x1="' + L + '" x2="' + W + '" y1="' + yy + '" y2="' + yy + '" stroke="rgba(255,255,255,.07)"/><text x="' + (L - 6) + '" y="' + (yy + 3) + '" text-anchor="end">' + y + '</text>'; }
+    days.forEach(function (d, k) {
+      var x = L + k * cw, acc = 0;   // أقدم يوم يسار، اليوم يمين
+      SA.forEach(function (a) {
+        var n = (grid[d] || {})[a.id] || 0; if (!n) return;
+        var h = n / max * (H - B - 10); acc += h;
+        svg += '<rect x="' + (x + 2) + '" y="' + (H - B - acc) + '" width="' + (cw - 4) + '" height="' + h + '" rx="2" fill="' + a.color + '"><title>' + d + ' · ' + a.name + ': ' + n + '</title></rect>';
+      });
+      if (k % 5 === 4 || k === 29) svg += '<text x="' + (x + cw / 2) + '" y="' + (H - 6) + '" text-anchor="middle">' + d.slice(8) + '/' + d.slice(5, 7) + '</text>';
+    });
+    $('#chart').innerHTML = svg;
+    $('#legend').innerHTML = SA.map(function (a) { return '<span><i style="background:' + a.color + '"></i>' + a.name + '</span>'; }).join('');
+    var feedAll = $('#feed').dataset.all === '1';
+    $('#feed').innerHTML = (j.recent || []).slice(0, feedAll ? 30 : 10).map(function (r) {
+      var a = SBY[r.app] || { name: r.app, color: '#888' }, live = now - r.last < (j.online_ms || 150e3);
+      return '<li><span class="dot" style="background:' + a.color + '"></span><div class="who">' + a.name + ' · ' + (PL[r.plat] || r.plat) +
+        '<small>أول زيارة ' + ago(r.first, now) + ' · فتحه ' + (r.opens || 0) + ' مرة' + (r.ver ? ' · v' + esc(r.ver) : '') + '</small></div>' +
+        (r.app === 'site' ? '' : '<span class="tag ' + (r.inst ? 'inst' : '') + '">' + (r.inst ? 'مثبّت' : 'متصفح') + '</span>') +
+        '<span class="when ' + (live ? 'now' : '') + '">' + (live ? '<span class="live-dot"></span>' : '') + ago(r.last, now) + '</span></li>';
+    }).join('') || '<li><span class="note">ما فيه نشاط بعد.</span></li>';
+    if ((j.recent || []).length > 10) $('#feed').insertAdjacentHTML('beforeend', '<li><button class="ghost" id="feedMore" style="margin:auto">' + (feedAll ? 'عرض أقل' : 'عرض المزيد') + '</button></li>');
+    var fm = $('#feedMore'); if (fm) fm.onclick = function () { $('#feed').dataset.all = feedAll ? '' : '1'; renderStats(j); };
+    var pg = j.pages || [], pmax = Math.max.apply(null, pg.map(function (r) { return r.n; }).concat([1]));
+    $('#pages').innerHTML = pg.map(function (r) { return '<li>' + esc(r.path === '/' ? 'الرئيسية' : r.path) + '<b>' + fmt(r.n) + '</b><div class="bar"><i style="width:' + (r.n / pmax * 100) + '%;background:var(--accent)"></i></div></li>'; }).join('') || '<li><span class="note">ما فيه زيارات بعد.</span></li>';
+  }
+  var statsTimer = null;
+  function showTab(t) {
+    document.querySelectorAll('.tabs button').forEach(function (b) { b.classList.toggle('on', b.dataset.tab === t); });
+    $('#v-stats').hidden = t !== 'stats'; $('#v-notif').hidden = t !== 'notif';
+    try { localStorage.setItem('wamd-admin-tab', t); } catch (e) {}
+  }
+  document.querySelectorAll('.tabs button').forEach(function (b) { b.onclick = function () { showTab(b.dataset.tab); }; });
+  try { if (localStorage.getItem('wamd-admin-tab') === 'notif') showTab('notif'); } catch (e) {}
+  setInterval(function () { if (!$('#panel').hidden && !$('#v-stats').hidden && document.visibilityState === 'visible') loadStats(); }, 30000);
+
   function load() {
     var res = { push: {}, siraj: {} };
     var p1 = api(PUSH, '/stats').then(function (j) { res.push = { ok: true, j: j }; }, function (e) { res.push = { ok: false, e: e }; });
@@ -195,6 +366,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px;margin-top:14px
       data.siraj = res.siraj.ok ? res.siraj.j : null;
       $('#login').hidden = true; $('#panel').hidden = false; $('#logout').hidden = false;
       render(res);
+      loadStats();
       return res;
     });
   }
@@ -242,6 +414,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px;margin-top:14px
   $('#keyGo').onclick = login;
   $('#key').onkeydown = function (e) { if (e.key === 'Enter') login(); };
   $('#refresh').onclick = function () { load().catch(function () {}); };
+  $('#refresh2').onclick = function () { load().catch(function () {}); };
   $('#logout').onclick = function () { try { localStorage.removeItem('wamd-admin'); } catch (e) {} location.reload(); };
   if (KEY) load().catch(function () { $('#login').hidden = false; });
 
