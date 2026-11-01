@@ -42,7 +42,7 @@ button{font:inherit;cursor:pointer;border-radius:12px;border:1px solid var(--lin
 .app .sub{font-size:12px;color:var(--muted)}
 .app .ex{font-size:12px;color:var(--muted);margin-top:6px;border-top:1px solid var(--line);padding-top:6px}
 .dot{width:10px;height:10px;border-radius:50%;flex:none}
-.pick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
 .pk{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;border-radius:14px;background:var(--card2);border:1.5px solid var(--line);cursor:pointer;user-select:none;text-align:center}
 .pk input{position:absolute;opacity:0}
 .pk b{font-size:15px}
@@ -133,7 +133,7 @@ main{max-width:980px}
   <section id="login">
     <h2>مفتاح الإدارة</h2>
     <div class="row"><input type="password" id="key" autocomplete="current-password" placeholder="ADMIN_KEY" aria-label="مفتاح الإدارة"><button id="keyGo">دخول</button></div>
-    <p class="note">نفس قيمة ADMIN_KEY في الخادمين (push-wamdarc و siraj-api). تنحفظ على هذا الجهاز فقط.</p>
+    <p class="note">نفس قيمة ADMIN_KEY في الخوادم (push-wamdarc و siraj-api و nabd-api). تنحفظ على هذا الجهاز فقط.</p>
     <div class="msg" id="loginMsg"></div>
   </section>
 
@@ -207,6 +207,7 @@ main{max-width:980px}
         <a href="https://github.com/bsshfi?tab=repositories" target="_blank" rel="noopener">GitHub<span>github.com/bsshfi</span></a>
         <a href="https://wamdarc.com" target="_blank" rel="noopener">الموقع<span>wamdarc.com</span></a>
         <a href="https://push-wamdarc.bsshfi.workers.dev/" target="_blank" rel="noopener">خادم الإشعارات<span>push-wamdarc</span></a>
+        <a href="https://nabd-api.bsshfi.workers.dev/" target="_blank" rel="noopener">خادم نَبْض<span>nabd-api</span></a>
       </div>
     </section>
     </div>
@@ -218,15 +219,17 @@ main{max-width:980px}
   var $ = function (s) { return document.querySelector(s); };
   var PUSH = 'https://push-wamdarc.bsshfi.workers.dev';
   var SIRAJ = 'https://siraj-api.bsshfi.workers.dev';
+  var NABD = 'https://nabd-api.bsshfi.workers.dev';
   var APPS = [
     { id: 'falaq', name: 'فَلَق', url: 'falaq.wamdarc.com', color: '#E0A060', srv: 'push' },
     { id: 'sahm', name: 'سهم', url: 'sahm.wamdarc.com', color: '#5BC08A', srv: 'push' },
     { id: 'khuta', name: 'خُطى', url: 'khuta.wamdarc.com', color: '#4DB8F0', srv: 'push' },
-    { id: 'siraj', name: 'سِراج', url: 'siraj.wamdarc.com', color: '#8E44C9', srv: 'siraj' }
+    { id: 'siraj', name: 'سِراج', url: 'siraj.wamdarc.com', color: '#8E44C9', srv: 'siraj' },
+    { id: 'nabd', name: 'نَبْض', url: 'nabd.wamdarc.com', color: '#3C5BD6', srv: 'nabd' }
   ];
   var BY = {}; APPS.forEach(function (a) { BY[a.id] = a; });
   var KEY = ''; try { KEY = localStorage.getItem('wamd-admin') || ''; } catch (e) {}
-  var kind = 'news', data = { push: null, siraj: null };
+  var kind = 'news', data = { push: null, siraj: null, nabd: null };
   var TPL = {
     fitr: { arT: 'عيدكم مبارك 🌙', arB: 'عيد فطر سعيد، تقبّل الله منا ومنكم صالح الأعمال. كل عام وأنتم بخير.', enT: 'Eid Mubarak 🌙', enB: 'Wishing you a blessed Eid al-Fitr. May Allah accept from us and from you.' },
     adha: { arT: 'عيد أضحى مبارك 🐑', arB: 'تقبّل الله منا ومنكم، وكل عام وأنتم بخير.', enT: 'Eid al-Adha Mubarak', enB: 'May Allah accept from us and from you. Wishing you a blessed Eid.' },
@@ -260,7 +263,8 @@ main{max-width:980px}
   function pill(name, state, txt) { return '<span class="pill ' + state + '"><i></i>' + esc(name) + (txt ? ' · ' + esc(txt) : '') + '</span>'; }
   function drawStatus(res) {
     $('#status').innerHTML = pill('push-wamdarc', res.push.ok ? 'ok' : 'bad', res.push.ok ? 'متصل' : 'غير متصل') +
-      pill('siraj-api', res.siraj.ok ? 'ok' : 'bad', res.siraj.ok ? 'متصل' : 'غير متصل');
+      pill('siraj-api', res.siraj.ok ? 'ok' : 'bad', res.siraj.ok ? 'متصل' : 'غير متصل') +
+      pill('nabd-api', res.nabd.ok ? 'ok' : 'bad', res.nabd.ok ? 'متصل' : 'غير متصل');
   }
 
   /* ---------- الإحصائيات ---------- */
@@ -287,6 +291,7 @@ main{max-width:980px}
     var now = j.now, T = byApp(j.totals), A = byApp(j.active), subsP = {};
     (j.subs || []).forEach(function (r) { subsP[r.app] = r.n; });
     if (data.siraj) subsP.siraj = data.siraj.subs;
+    if (data.nabd) subsP.nabd = data.nabd.subs;
     var sum = function (k, src) { return SA.reduce(function (n, a) { return n + (((src || T)[a.id] || {})[k] || 0); }, 0); };
     var appsOnly = function (k, src) { return APPS.reduce(function (n, a) { return n + (((src || T)[a.id] || {})[k] || 0); }, 0); };
     $('#kpis').innerHTML =
@@ -356,14 +361,16 @@ main{max-width:980px}
   setInterval(function () { if (!$('#panel').hidden && !$('#v-stats').hidden && document.visibilityState === 'visible') loadStats(); }, 30000);
 
   function load() {
-    var res = { push: {}, siraj: {} };
+    var res = { push: {}, siraj: {}, nabd: {} };
     var p1 = api(PUSH, '/stats').then(function (j) { res.push = { ok: true, j: j }; }, function (e) { res.push = { ok: false, e: e }; });
     var p2 = api(SIRAJ, '/stats').then(function (j) { res.siraj = { ok: true, j: j }; }, function (e) { res.siraj = { ok: false, e: e }; });
-    return Promise.all([p1, p2]).then(function () {
+    var p3 = api(NABD, '/stats').then(function (j) { res.nabd = { ok: true, j: j }; }, function (e) { res.nabd = { ok: false, e: e }; });
+    return Promise.all([p1, p2, p3]).then(function () {
       drawStatus(res);
-      if (!res.push.ok && !res.siraj.ok) throw res.push.e || res.siraj.e;
+      if (!res.push.ok && !res.siraj.ok && !res.nabd.ok) throw res.push.e || res.siraj.e || res.nabd.e;
       data.push = res.push.ok ? res.push.j : null;
       data.siraj = res.siraj.ok ? res.siraj.j : null;
+      data.nabd = res.nabd.ok ? res.nabd.j : null;
       $('#login').hidden = true; $('#panel').hidden = false; $('#logout').hidden = false;
       render(res);
       loadStats();
@@ -375,17 +382,26 @@ main{max-width:980px}
     var counts = {};
     ((data.push && data.push.apps) || []).forEach(function (a) { counts[a.app] = a.n; });
     if (data.siraj) counts.siraj = data.siraj.subs;
+    if (data.nabd) counts.nabd = data.nabd.subs;
     $('#apps').innerHTML = APPS.map(function (a) {
-      var up = a.srv === 'push' ? !!data.push : !!data.siraj;
+      var up = !!data[a.srv];
       var ex = '';
       if (a.id === 'siraj' && data.siraj) ex = '<div class="ex">👨‍👩‍👧 ' + data.siraj.families + ' عائلة · 📱 ' + (data.siraj.devices || 0) + ' جهاز (' + (data.siraj.activeWeek || 0) + ' نشط هالأسبوع)<br>🔔 ' + (data.siraj.parentDevices || 0) + ' وليّ أمر · ' + (data.siraj.kidDevices || 0) + ' طفل</div>';
-      if (!up) ex = '<div class="ex" style="color:var(--bad)">' + esc(errText(a.srv === 'push' ? res.push.e : res.siraj.e)) + '</div>';
+      if (a.id === 'nabd' && data.nabd) {
+        var n = data.nabd, t = n.today || {};
+        ex = '<div class="ex">👨‍👩‍👧 ' + n.families + ' عائلة (' + (n.activeFamiliesWeek || 0) + ' نشطة هالأسبوع) · ' + n.parents + ' وليّ أمر · ' + n.kids + ' طفل' +
+          '<br>📱 ' + n.devices + ' جهاز · <span style="color:var(--ok)">' + (n.online || 0) + ' متصل الآن</span> · ' + (n.activeToday || 0) + ' اليوم' +
+          '<br>💬 اليوم: ' + t.text + ' نص · ' + t.voice + ' صوت · ' + t.photo + ' صورة · ' + t.draw + ' رسمة · 💓 ' + t.nudges + ' نبضة' +
+          '<br>📦 في السيرفر الحين: ' + (n.queued || 0) + ' رسالة بانتظار التوصيل' +
+          ((n.versions || [])[0] ? '<br>🔄 أكثر إصدار: v' + esc(n.versions[0].ver || '—') + ' · ' + n.versions[0].n + ' جهاز' : '') + '</div>';
+      }
+      if (!up) ex = '<div class="ex" style="color:var(--bad)">' + esc(errText((res[a.srv] || {}).e)) + '</div>';
       return '<div class="app"><div class="hd"><span class="dot" style="background:' + a.color + '"></span><b>' + a.name + '</b><a href="https://' + a.url + '" target="_blank" rel="noopener">↗</a></div>' +
         '<div class="big">' + (up ? (counts[a.id] || 0) : '—') + '</div><div class="sub">مشترك في الإشعارات</div>' + ex + '</div>';
     }).join('');
     var keep = {}; document.querySelectorAll('.pk input').forEach(function (i) { keep[i.value] = i.checked; });
     $('#pick').innerHTML = APPS.map(function (a) {
-      var up = a.srv === 'push' ? !!data.push : !!data.siraj;
+      var up = !!data[a.srv];
       var on = a.id in keep ? keep[a.id] : true;
       return '<label class="pk"><input type="checkbox" value="' + a.id + '"' + (on && up ? ' checked' : '') + (up ? '' : ' disabled') + '><b>' + a.name + '</b><span>' + (up ? (counts[a.id] || 0) + ' مشترك' : 'غير متصل') + '</span></label>';
     }).join('');
@@ -396,6 +412,7 @@ main{max-width:980px}
       hist.push({ t: m.created, title: (b.ar || {}).title || '', apps: m.apps.split(','), total: m.total });
     });
     ((data.siraj && data.siraj.history) || []).forEach(function (m) { hist.push({ t: m.created, title: m.title, apps: ['siraj'], total: m.total }); });
+    ((data.nabd && data.nabd.history) || []).forEach(function (m) { hist.push({ t: m.created, title: m.title, apps: ['nabd'], total: m.total }); });
     hist.sort(function (a, b) { return b.t - a.t; });
     $('#hist').innerHTML = hist.slice(0, 12).map(function (m) {
       var c = (BY[m.apps[0]] || {}).color || '#888';
@@ -450,6 +467,8 @@ main{max-width:980px}
         function (e) { out.push('✗ فلق/سهم/خطى: ' + errText(e)); }));
     if (apps.indexOf('siraj') >= 0) jobs.push(api(SIRAJ, '/broadcast', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ar: { title: t, body: b } }) })
       .then(function (r) { out.push('✓ سِراج: ' + (r.sent ? r.sent + ' جهاز' : 'ما فيه مشتركين')); }, function (e) { out.push('✗ سِراج: ' + errText(e)); }));
+    if (apps.indexOf('nabd') >= 0) jobs.push(api(NABD, '/broadcast', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ar: { title: t, body: b } }) })
+      .then(function (r) { out.push('✓ نَبْض: ' + (r.sent ? r.sent + ' جهاز' : 'ما فيه مشتركين')); }, function (e) { out.push('✗ نَبْض: ' + errText(e)); }));
     Promise.all(jobs).then(function () {
       show($('#sendMsg'), out.some(function (x) { return x[0] === '✗'; }) ? 'bad' : 'ok', out.join('\n'));
       load().catch(function () {});
