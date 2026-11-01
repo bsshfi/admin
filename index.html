@@ -118,6 +118,41 @@ main{max-width:980px}
 .cols section{margin-top:0}
 .setup{background:rgba(232,176,75,.1);border:1px solid rgba(232,176,75,.35);color:var(--warn);border-radius:14px;padding:12px 14px;font-size:14px}
 @media (max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}.cols{grid-template-columns:1fr}}
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:14px 0 10px}
+.toolbar .sp{flex:1}
+.tiny{font-size:12px;color:var(--muted)}
+.seg{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;color:var(--muted);padding:6px 12px;border-radius:9px;font-size:13px}
+.seg button.on{background:var(--card2);color:var(--text);font-weight:600}
+.seg.sm button{padding:4px 10px;font-size:12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:6px 11px;border-radius:999px;background:var(--card);color:var(--muted)}
+.chips button i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.chips button.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+.kpis{grid-template-columns:repeat(6,1fr)!important}
+.kpi b em,.m4 em{font-style:normal;font-size:11px;font-weight:600;margin-inline-start:6px;vertical-align:middle}
+em.up{color:var(--ok)} em.down{color:var(--bad)}
+.acard{cursor:pointer;transition:opacity .2s,border-color .2s}
+.acard:hover{border-color:rgba(255,255,255,.2)}
+.acard.dim{opacity:.38}
+.cols3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
+.cols3 section{margin-top:0}
+.cols{margin-top:14px}
+.dow{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;height:150px;align-items:end;text-align:center}
+.dow div{display:flex;flex-direction:column;justify-content:flex-end;height:100%;gap:3px}
+.dow i{display:block;background:rgba(255,255,255,.18);border-radius:6px 6px 3px 3px;min-height:4px}
+.dow b{font-size:12px} .dow span{font-size:11px;color:var(--muted)}
+.funnel div{margin-bottom:10px}
+.funnel span{font-size:13px;color:var(--muted)} .funnel b{float:left;font-size:14px} .funnel small{color:var(--muted);font-weight:400}
+.sw{display:inline-block;width:8px;height:8px;border-radius:2px;margin-inline-end:6px}
+.apppanel{border-top:3px solid var(--c)}
+.apppanel h2 a{color:var(--muted);text-decoration:none}
+.mini{display:grid;grid-template-columns:repeat(14,1fr);gap:4px;height:70px;align-items:end;margin-top:12px}
+.mini div{display:flex;flex-direction:column-reverse;height:100%;background:rgba(255,255,255,.03);border-radius:4px;overflow:hidden}
+.mini i{display:block;width:100%}
+@media (max-width:1000px){.kpis{grid-template-columns:repeat(3,1fr)!important}.cols3{grid-template-columns:1fr}}
+@media (max-width:560px){.kpis{grid-template-columns:repeat(2,1fr)!important}.toolbar .sp{display:none}}
+
 @media (max-width:420px){.pick{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
@@ -142,27 +177,43 @@ main{max-width:980px}
 
     <div id="v-stats">
       <div id="statsSetup" class="setup" hidden style="margin-top:14px"></div>
-      <section style="background:none;border:0;padding:0">
-        <div class="kpis" id="kpis"></div>
-      </section>
+      <div class="toolbar">
+        <div class="seg" id="range"><button data-d="7">٧ أيام</button><button data-d="30" class="on">٣٠ يوم</button><button data-d="90">٩٠ يوم</button></div>
+        <div class="chips" id="appf"></div>
+        <span class="sp"></span>
+        <span id="updated" class="tiny"></span>
+        <button class="ghost" id="csv" title="تنزيل الأرقام اليومية">CSV ⤓</button>
+        <button class="ghost" id="refresh2">تحديث ↻</button>
+      </div>
+      <div class="kpis" id="kpis"></div>
       <section>
-        <h2>التطبيقات والموقع<span class="sp"></span><span id="updated" style="font-size:12px"></span><button class="ghost" id="refresh2">تحديث ↻</button></h2>
+        <h2>التطبيقات والموقع</h2>
         <div class="acards" id="acards"></div>
       </section>
       <section>
-        <h2>الأجهزة النشطة يومياً — آخر ٣٠ يوم</h2>
-        <svg class="chart" id="chart" viewBox="0 0 640 200" role="img" aria-label="رسم النشاط اليومي"></svg>
+        <h2><span id="chartTitle">الأجهزة النشطة يومياً</span><span class="sp"></span>
+          <span class="seg sm" id="metric"><button data-m="n" class="on">نشط</button><button data-m="new">جديد</button><button data-m="opens">مرات الفتح</button></span></h2>
+        <svg class="chart" id="chart" viewBox="0 0 640 210" role="img" aria-label="رسم النشاط اليومي"></svg>
         <div class="legend" id="legend"></div>
       </section>
-      <div class="cols" style="margin-top:14px">
+      <div class="cols3">
+        <section><h2>أيام الأسبوع</h2><div id="dow" class="dow"></div><p class="note" id="dowNote"></p></section>
+        <section><h2>رحلة المستخدم</h2><div id="funnel" class="funnel"></div></section>
+        <section><h2>الأجهزة واللغة</h2><div id="mix"></div></section>
+      </div>
+      <div class="cols">
+        <section class="apppanel" style="--c:#3C5BD6"><h2><span class="dot" style="background:#3C5BD6"></span>نَبْض<span class="sp"></span><a class="tiny" href="https://nabd.wamdarc.com" target="_blank" rel="noopener">↗</a></h2><div id="nabdP"></div></section>
+        <section class="apppanel" style="--c:#8E44C9"><h2><span class="dot" style="background:#8E44C9"></span>سِراج<span class="sp"></span><a class="tiny" href="https://siraj.wamdarc.com" target="_blank" rel="noopener">↗</a></h2><div id="sirajP"></div></section>
+      </div>
+      <div class="cols">
         <section>
-          <h2>آخر النشاط</h2>
+          <h2>آخر النشاط<span class="sp"></span><label class="tiny"><input type="checkbox" id="onlyLive"> المتصلين فقط</label></h2>
           <ul class="feed" id="feed"></ul>
         </section>
         <section>
-          <h2>أكثر صفحات الموقع زيارة — ٣٠ يوم</h2>
+          <h2>أكثر صفحات الموقع زيارة</h2>
           <ul class="pages" id="pages"></ul>
-          <p class="note">كل جهاز يُعدّ مرة لكل تطبيق، بمعرّف عشوائي مجهول. «مثبّت» = فُتح من الشاشة الرئيسية ولو مرة.</p>
+          <p class="note">كل جهاز يُعدّ مرة لكل تطبيق، بمعرّف عشوائي مجهول. «مثبّت» = فُتح من الشاشة الرئيسية ولو مرة. «يرجع» = استخدمه في يومين أو أكثر خلال الفترة. «خامل» = ما فتحه من ١٤ يوم.</p>
         </section>
       </div>
     </div>
@@ -272,7 +323,12 @@ main{max-width:980px}
   var SBY = {}; SA.forEach(function (a) { SBY[a.id] = a; });
   var PL = { ios: 'آيفون', android: 'أندرويد', desktop: 'كمبيوتر', other: 'أخرى' };
   var PLC = { ios: '#F2EFEA', android: '#5BC08A', desktop: '#4DB8F0', other: '#666' };
-  var fmt = function (n) { return (n || 0).toLocaleString('en-US'); };
+  var DOW = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+  var fmt = function (n) { return Math.round(n || 0).toLocaleString('en-US'); };
+  var pct = function (a, b) { return b ? Math.round(a / b * 100) : 0; };
+  var ST = { days: 30, app: 'all', metric: 'n', j: null };
+  try { var sv = JSON.parse(localStorage.getItem('wamd-admin-st') || '{}'); if ([7, 30, 90].indexOf(sv.days) >= 0) ST.days = sv.days; if (sv.app) ST.app = sv.app; if (sv.metric) ST.metric = sv.metric; } catch (e) {}
+  function saveST() { try { localStorage.setItem('wamd-admin-st', JSON.stringify({ days: ST.days, app: ST.app, metric: ST.metric })); } catch (e) {} }
   function ago(t, now) {
     var s = Math.max(0, Math.round((now - t) / 1000));
     if (s < 150) return 'الآن';
@@ -281,75 +337,181 @@ main{max-width:980px}
     return 'قبل ' + Math.round(s / 86400) + ' يوم';
   }
   function byApp(list) { var o = {}; (list || []).forEach(function (r) { o[r.app] = r; }); return o; }
+  function delta(cur, prev) {
+    if (!prev) return cur ? '<em class="up">جديد</em>' : '';
+    var d = Math.round((cur - prev) / prev * 100);
+    return '<em class="' + (d >= 0 ? 'up' : 'down') + '">' + (d >= 0 ? '▲ ' : '▼ ') + Math.abs(d) + '%</em>';
+  }
+  var STATS_SRC = 'nabd';   // nabd-api /wamd/analytics (الأشمل)، والبديل push-wamdarc /analytics
   function loadStats() {
-    return api(PUSH, '/analytics').then(function (j) { $('#statsSetup').hidden = true; renderStats(j); }, function (e) {
-      var el = $('#statsSetup'); el.hidden = false;
-      el.textContent = e && e.status === 404 ? 'الإحصائيات تحتاج تحديث كود خادم push-wamdarc مرة وحدة (الخطوات في رسالة Claude). بعدها تبدأ الأرقام تظهر تلقائياً.' : errText(e);
+    var go = STATS_SRC === 'nabd' ? api(NABD, '/wamd/analytics?days=' + ST.days) : api(PUSH, '/analytics');
+    return go.then(function (j) { $('#statsSetup').hidden = true; ST.j = norm(j); renderStats(); }, function (e) {
+      if (STATS_SRC === 'nabd') { STATS_SRC = 'push'; return loadStats(); }
+      var el = $('#statsSetup'); el.hidden = false; el.textContent = errText(e);
     });
   }
-  function renderStats(j) {
-    var now = j.now, T = byApp(j.totals), A = byApp(j.active), subsP = {};
+  // توحيد شكل البيانات بين الخادمين
+  function norm(j) {
+    (j.active || []).forEach(function (r) { if (r.rng == null) r.rng = r.d30; });
+    j.days = j.days || 30; j.prev = j.prev || []; j.ret = j.ret || []; j.dow = j.dow || []; j.langs = j.langs || [];
+    return j;
+  }
+  function inApp(id) { return ST.app === 'all' || ST.app === id; }
+  function renderStats() {
+    var j = ST.j; if (!j) return;
+    var now = j.now, T = byApp(j.totals), A = byApp(j.active), P = byApp(j.prev), RT = byApp(j.ret), subsP = {};
     (j.subs || []).forEach(function (r) { subsP[r.app] = r.n; });
     if (data.siraj) subsP.siraj = data.siraj.subs;
     if (data.nabd) subsP.nabd = data.nabd.subs;
-    var sum = function (k, src) { return SA.reduce(function (n, a) { return n + (((src || T)[a.id] || {})[k] || 0); }, 0); };
-    var appsOnly = function (k, src) { return APPS.reduce(function (n, a) { return n + (((src || T)[a.id] || {})[k] || 0); }, 0); };
+    var sel = SA.filter(function (a) { return inApp(a.id); }), selApps = sel.filter(function (a) { return a.id !== 'site'; });
+    var sum = function (src, k, list) { return (list || sel).reduce(function (n, a) { return n + ((src[a.id] || {})[k] || 0); }, 0); };
+    var R = j.days, rl = { 7: '٧ أيام', 30: '٣٠ يوم', 90: '٩٠ يوم' }[R] || R + ' يوم';
+    var newRange = 0; Object.keys(j.newByDay || {}).forEach(function (k) { if (inApp(k.split('|')[1])) newRange += j.newByDay[k]; });
+    var back = sum(RT, 'back'), retN = sum(RT, 'n');
+    // الفلاتر
+    document.querySelectorAll('#range button').forEach(function (b) { b.classList.toggle('on', +b.dataset.d === R); });
+    $('#appf').innerHTML = '<button data-a="all" class="' + (ST.app === 'all' ? 'on' : '') + '">الكل</button>' + SA.map(function (a) {
+      return '<button data-a="' + a.id + '" class="' + (ST.app === a.id ? 'on' : '') + '"><i style="background:' + a.color + '"></i>' + a.name + '</button>';
+    }).join('');
+    $('#appf').querySelectorAll('button').forEach(function (b) { b.onclick = function () { ST.app = b.dataset.a; saveST(); renderStats(); }; });
     $('#kpis').innerHTML =
-      '<div class="kpi live"><b><span class="live-dot"></span>' + fmt(sum('online')) + '</b><span>متصل الآن</span></div>' +
-      '<div class="kpi"><b>' + fmt(sum('today', A)) + '</b><span>زائر اليوم (كل التطبيقات)</span></div>' +
-      '<div class="kpi"><b>' + fmt(appsOnly('inst')) + '</b><span>تثبيت على الشاشة الرئيسية</span></div>' +
-      '<div class="kpi"><b>' + fmt(sum('new_today')) + '</b><span>جهاز جديد اليوم</span></div>';
-    $('#updated').textContent = 'آخر تحديث ' + new Date(now).toLocaleTimeString('ar-SA-u-nu-latn', { hour: 'numeric', minute: '2-digit' });
+      '<div class="kpi live"><b><span class="live-dot"></span>' + fmt(sum(T, 'online')) + '</b><span>متصل الآن</span></div>' +
+      '<div class="kpi"><b>' + fmt(sum(A, 'today')) + '</b><span>نشط اليوم</span></div>' +
+      '<div class="kpi"><b>' + fmt(sum(A, 'rng')) + delta(sum(A, 'rng'), sum(P, 'rng')) + '</b><span>نشط خلال ' + rl + '</span></div>' +
+      '<div class="kpi"><b>' + fmt(newRange) + '</b><span>جهاز جديد خلال ' + rl + '</span></div>' +
+      '<div class="kpi"><b>' + fmt(sum(T, 'inst', selApps)) + '</b><span>مثبّت على الشاشة</span></div>' +
+      '<div class="kpi"><b>' + pct(back, retN) + '%</b><span>يرجعون (' + fmt(back) + ' من ' + fmt(retN) + ')</span></div>';
+    $('#updated').textContent = new Date(now).toLocaleTimeString('ar-SA-u-nu-latn', { hour: 'numeric', minute: '2-digit' });
     var plat = {}; (j.plat || []).forEach(function (r) { (plat[r.app] = plat[r.app] || []).push(r); });
     var ver = {}; (j.ver || []).forEach(function (r) { (ver[r.app] = ver[r.app] || []).push(r); });
+    var cmpV = function (a, b) { var x = String(a).split('.'), y = String(b).split('.'); for (var i = 0; i < Math.max(x.length, y.length); i++) { var d = (+x[i] || 0) - (+y[i] || 0); if (d) return d; } return 0; };
     $('#acards').innerHTML = SA.map(function (a) {
-      var t = T[a.id] || {}, ac = A[a.id] || {}, total = t.total || 0, inst = t.inst || 0;
-      var pl = plat[a.id] || [], pTot = pl.reduce(function (n, r) { return n + r.n; }, 0) || 1;
-      var bar = pl.sort(function (x, y) { return y.n - x.n; }).map(function (r) { return '<i style="width:' + (r.n / pTot * 100) + '%;background:' + PLC[r.plat] + '" title="' + PL[r.plat] + ' ' + r.n + '"></i>'; }).join('');
-      var plTxt = pl.map(function (r) { return PL[r.plat] + ' ' + r.n; }).join(' · ') || '—';
-      var v = (ver[a.id] || [])[0];
-      var online = t.online || 0;
-      return '<div class="acard"><div class="hd"><span class="dot" style="background:' + a.color + '"></span><b>' + a.name + '</b>' +
+      var t = T[a.id] || {}, ac = A[a.id] || {}, pv = P[a.id] || {}, rt = RT[a.id] || {}, total = t.total || 0, inst = t.inst || 0, online = t.online || 0;
+      var pl = (plat[a.id] || []).slice().sort(function (x, y) { return y.n - x.n; }), pTot = pl.reduce(function (n, r) { return n + r.n; }, 0) || 1;
+      var bar = pl.map(function (r) { return '<i style="width:' + (r.n / pTot * 100) + '%;background:' + PLC[r.plat] + '" title="' + PL[r.plat] + ' ' + r.n + '"></i>'; }).join('');
+      var vs = (ver[a.id] || []).slice().sort(function (x, y) { return cmpV(y.ver, x.ver); }), latest = vs[0], vTot = vs.reduce(function (n, r) { return n + r.n; }, 0);
+      return '<div class="acard' + (inApp(a.id) ? '' : ' dim') + '" data-a="' + a.id + '"><div class="hd"><span class="dot" style="background:' + a.color + '"></span><b>' + a.name + '</b>' +
         '<em class="' + (online ? '' : 'off') + '">' + (online ? '<span class="live-dot"></span>' + online + ' متصل' : 'لا أحد متصل') + '</em></div>' +
-        '<div class="m4"><div><b>' + fmt(ac.today) + '</b><span>اليوم</span></div><div><b>' + fmt(ac.d7) + '</b><span>٧ أيام</span></div><div><b>' + fmt(ac.d30) + '</b><span>٣٠ يوم</span></div><div><b>' + fmt(total) + '</b><span>كل الأجهزة</span></div></div>' +
-        (a.id === 'site' ? '<div class="kv"><span>مرات الفتح</span><b>' + fmt(t.opens) + '</b></div>' :
-          '<div class="kv"><span>مثبّت على الشاشة</span><b>' + fmt(inst) + ' من ' + fmt(total) + (total ? ' (' + Math.round(inst / total * 100) + '%)' : '') + '</b></div>' +
-          '<div class="bar"><i style="width:' + (total ? inst / total * 100 : 0) + '%;background:' + a.color + '"></i></div>' +
-          '<div class="kv"><span>🔔 الإشعارات</span><b>' + fmt(subsP[a.id]) + (inst ? ' (' + Math.round((subsP[a.id] || 0) / Math.max(inst, 1) * 100) + '% من المثبّتين)' : '') + '</b></div>') +
-        '<div class="kv"><span>الأجهزة</span><b>' + plTxt + '</b></div><div class="bar">' + bar + '</div>' +
-        (v ? '<div class="kv"><span>أكثر إصدار</span><b dir="ltr">v' + esc(v.ver) + ' · ' + v.n + '</b></div>' : '') + '</div>';
+        '<div class="m4"><div><b>' + fmt(ac.today) + '</b><span>اليوم</span></div><div><b>' + fmt(ac.d7) + '</b><span>٧ أيام</span></div><div><b>' + fmt(ac.rng) + '</b><span>' + rl + ' ' + delta(ac.rng || 0, pv.rng || 0) + '</span></div><div><b>' + fmt(total) + '</b><span>كل الأجهزة</span></div></div>' +
+        (a.id === 'site' ? '<div class="kv"><span>مرات الفتح خلال ' + rl + '</span><b>' + fmt(ac.opens) + '</b></div>' :
+          '<div class="kv"><span>مثبّت على الشاشة</span><b>' + fmt(inst) + ' من ' + fmt(total) + ' (' + pct(inst, total) + '%)</b></div>' +
+          '<div class="bar"><i style="width:' + pct(inst, total) + '%;background:' + a.color + '"></i></div>' +
+          '<div class="kv"><span>🔔 الإشعارات</span><b>' + fmt(subsP[a.id]) + (inst ? ' (' + pct(subsP[a.id] || 0, inst) + '% من المثبّتين)' : '') + '</b></div>') +
+        '<div class="kv"><span>يرجعون · خامل</span><b>' + pct(rt.back || 0, rt.n || 0) + '% · ' + fmt(t.dormant) + '</b></div>' +
+        '<div class="kv"><span>الأجهزة</span><b>' + (pl.map(function (r) { return PL[r.plat] + ' ' + r.n; }).join(' · ') || '—') + '</b></div><div class="bar">' + bar + '</div>' +
+        (latest ? '<div class="kv"><span>على آخر إصدار</span><b><span dir="ltr">v' + esc(latest.ver) + '</span> · ' + pct(latest.n, vTot) + '%</b></div>' : '') + '</div>';
     }).join('');
-    // الرسم: أعمدة مكدّسة لكل يوم
-    var days = []; for (var i = 29; i >= 0; i--) days.push(new Date(now - i * 864e5 + 3 * 36e5).toISOString().slice(0, 10));
-    var grid = {}; (j.series || []).forEach(function (r) { (grid[r.day] = grid[r.day] || {})[r.app] = r.n; });
-    var max = Math.max(1, Math.max.apply(null, days.map(function (d) { return SA.reduce(function (n, a) { return n + ((grid[d] || {})[a.id] || 0); }, 0); })));
-    var W = 640, H = 200, L = 28, B = 22, cw = (W - L - 6) / 30, svg = '';
-    var step = Math.max(1, Math.ceil(max / 4));
-    for (var y = 0; y <= max; y += step) { var yy = H - B - (y / max) * (H - B - 10); svg += '<line x1="' + L + '" x2="' + W + '" y1="' + yy + '" y2="' + yy + '" stroke="rgba(255,255,255,.07)"/><text x="' + (L - 6) + '" y="' + (yy + 3) + '" text-anchor="end">' + y + '</text>'; }
-    days.forEach(function (d, k) {
-      var x = L + k * cw, acc = 0;   // أقدم يوم يسار، اليوم يمين
-      SA.forEach(function (a) {
-        var n = (grid[d] || {})[a.id] || 0; if (!n) return;
-        var h = n / max * (H - B - 10); acc += h;
-        svg += '<rect x="' + (x + 2) + '" y="' + (H - B - acc) + '" width="' + (cw - 4) + '" height="' + h + '" rx="2" fill="' + a.color + '"><title>' + d + ' · ' + a.name + ': ' + n + '</title></rect>';
-      });
-      if (k % 5 === 4 || k === 29) svg += '<text x="' + (x + cw / 2) + '" y="' + (H - 6) + '" text-anchor="middle">' + d.slice(8) + '/' + d.slice(5, 7) + '</text>';
-    });
-    $('#chart').innerHTML = svg;
-    $('#legend').innerHTML = SA.map(function (a) { return '<span><i style="background:' + a.color + '"></i>' + a.name + '</span>'; }).join('');
-    var feedAll = $('#feed').dataset.all === '1';
-    $('#feed').innerHTML = (j.recent || []).slice(0, feedAll ? 30 : 10).map(function (r) {
-      var a = SBY[r.app] || { name: r.app, color: '#888' }, live = now - r.last < (j.online_ms || 150e3);
-      return '<li><span class="dot" style="background:' + a.color + '"></span><div class="who">' + a.name + ' · ' + (PL[r.plat] || r.plat) +
-        '<small>أول زيارة ' + ago(r.first, now) + ' · فتحه ' + (r.opens || 0) + ' مرة' + (r.ver ? ' · v' + esc(r.ver) : '') + '</small></div>' +
-        (r.app === 'site' ? '' : '<span class="tag ' + (r.inst ? 'inst' : '') + '">' + (r.inst ? 'مثبّت' : 'متصفح') + '</span>') +
-        '<span class="when ' + (live ? 'now' : '') + '">' + (live ? '<span class="live-dot"></span>' : '') + ago(r.last, now) + '</span></li>';
-    }).join('') || '<li><span class="note">ما فيه نشاط بعد.</span></li>';
-    if ((j.recent || []).length > 10) $('#feed').insertAdjacentHTML('beforeend', '<li><button class="ghost" id="feedMore" style="margin:auto">' + (feedAll ? 'عرض أقل' : 'عرض المزيد') + '</button></li>');
-    var fm = $('#feedMore'); if (fm) fm.onclick = function () { $('#feed').dataset.all = feedAll ? '' : '1'; renderStats(j); };
+    $('#acards').querySelectorAll('.acard').forEach(function (c) { c.onclick = function () { ST.app = ST.app === c.dataset.a ? 'all' : c.dataset.a; saveST(); renderStats(); }; });
+    drawChart(j, sel);
+    drawDow(j, sel);
+    drawFunnel(T, A, subsP, selApps, rl);
+    drawMix(j, sel);
+    drawNabd(); drawSiraj();
+    drawFeed(j, now);
     var pg = j.pages || [], pmax = Math.max.apply(null, pg.map(function (r) { return r.n; }).concat([1]));
     $('#pages').innerHTML = pg.map(function (r) { return '<li>' + esc(r.path === '/' ? 'الرئيسية' : r.path) + '<b>' + fmt(r.n) + '</b><div class="bar"><i style="width:' + (r.n / pmax * 100) + '%;background:var(--accent)"></i></div></li>'; }).join('') || '<li><span class="note">ما فيه زيارات بعد.</span></li>';
   }
+  function dayList(j) { var out = []; for (var i = j.days - 1; i >= 0; i--) out.push(new Date(j.now - i * 864e5 + 3 * 36e5).toISOString().slice(0, 10)); return out; }
+  function drawChart(j, sel) {
+    var days = dayList(j), grid = {};
+    if (ST.metric === 'new') Object.keys(j.newByDay || {}).forEach(function (k) { var p = k.split('|'); (grid[p[0]] = grid[p[0]] || {})[p[1]] = j.newByDay[k]; });
+    else (j.series || []).forEach(function (r) { (grid[r.day] = grid[r.day] || {})[r.app] = ST.metric === 'opens' ? r.opens : r.n; });
+    $('#chartTitle').textContent = { n: 'الأجهزة النشطة يومياً', 'new': 'الأجهزة الجديدة يومياً', opens: 'مرات الفتح يومياً' }[ST.metric];
+    document.querySelectorAll('#metric button').forEach(function (b) { b.classList.toggle('on', b.dataset.m === ST.metric); });
+    var tot = days.map(function (d) { return sel.reduce(function (n, a) { return n + ((grid[d] || {})[a.id] || 0); }, 0); });
+    var max = Math.max(1, Math.max.apply(null, tot));
+    var W = 640, H = 210, L = 30, B = 22, cw = (W - L - 4) / days.length, svg = '', step = Math.max(1, Math.ceil(max / 4));
+    for (var y = 0; y <= max; y += step) { var yy = H - B - (y / max) * (H - B - 12); svg += '<line x1="' + L + '" x2="' + W + '" y1="' + yy + '" y2="' + yy + '" stroke="rgba(255,255,255,.07)"/><text x="' + (L - 6) + '" y="' + (yy + 3) + '" text-anchor="end">' + y + '</text>'; }
+    var every = days.length > 40 ? 15 : days.length > 10 ? 5 : 1;
+    days.forEach(function (d, k) {
+      var x = L + k * cw, acc = 0, gap = cw > 8 ? 2 : 0.5;
+      sel.forEach(function (a) {
+        var n = (grid[d] || {})[a.id] || 0; if (!n) return;
+        var h = n / max * (H - B - 12); acc += h;
+        svg += '<rect x="' + (x + gap) + '" y="' + (H - B - acc) + '" width="' + Math.max(1, cw - 2 * gap) + '" height="' + h + '" rx="' + (cw > 8 ? 2 : 0) + '" fill="' + a.color + '"><title>' + d + ' · ' + a.name + ': ' + n + '</title></rect>';
+      });
+      if ((days.length - 1 - k) % every === 0) svg += '<text x="' + (x + cw / 2) + '" y="' + (H - 6) + '" text-anchor="middle">' + d.slice(8) + '/' + d.slice(5, 7) + '</text>';
+    });
+    $('#chart').innerHTML = svg;
+    $('#legend').innerHTML = sel.map(function (a) { return '<span><i style="background:' + a.color + '"></i>' + a.name + '</span>'; }).join('') + '<span style="margin-inline-start:auto">المجموع: ' + fmt(tot.reduce(function (a, b) { return a + b; }, 0)) + '</span>';
+  }
+  function drawDow(j, sel) {
+    var c = [0, 0, 0, 0, 0, 0, 0];
+    (j.dow || []).forEach(function (r) { if (sel.some(function (a) { return a.id === r.app; })) c[r.w] += r.n; });
+    var max = Math.max.apply(null, c.concat([1])), best = c.indexOf(Math.max.apply(null, c));
+    $('#dow').innerHTML = c.map(function (n, w) { return '<div><i style="height:' + Math.max(4, n / max * 100) + '%;' + (w === best && n ? 'background:var(--accent)' : '') + '"></i><b>' + fmt(n) + '</b><span>' + DOW[w].replace('ال', '') + '</span></div>'; }).join('');
+    $('#dowNote').textContent = c.some(Boolean) ? 'أكثر يوم استخداماً: ' + DOW[best] : 'ما فيه بيانات كافية بعد.';
+  }
+  function drawFunnel(T, A, subsP, apps, rl) {
+    var vis = 0, inst = 0, subs = 0, act = 0;
+    apps.forEach(function (a) { var t = T[a.id] || {}; vis += t.total || 0; inst += t.inst || 0; subs += subsP[a.id] || 0; act += (A[a.id] || {}).rng || 0; });
+    var rows = [['فتح التطبيق', vis], ['ثبّته على الشاشة', inst], ['فعّل الإشعارات', subs], ['نشط خلال ' + rl, act]];
+    $('#funnel').innerHTML = apps.length ? rows.map(function (r, i) {
+      return '<div><span>' + r[0] + '</span><b>' + fmt(r[1]) + (i ? ' <small>' + pct(r[1], vis) + '%</small>' : '') + '</b><div class="bar"><i style="width:' + (vis ? Math.max(2, r[1] / vis * 100) : 0) + '%;background:var(--accent);opacity:' + (1 - i * 0.18) + '"></i></div></div>';
+    }).join('') : '<p class="note">الموقع ما له تثبيت ولا إشعارات.</p>';
+  }
+  function drawMix(j, sel) {
+    var p = {}, l = { ar: 0, en: 0 };
+    (j.plat || []).forEach(function (r) { if (sel.some(function (a) { return a.id === r.app; })) p[r.plat] = (p[r.plat] || 0) + r.n; });
+    (j.langs || []).forEach(function (r) { if (sel.some(function (a) { return a.id === r.app; })) l[r.lang] = (l[r.lang] || 0) + r.n; });
+    var tp = Object.keys(p).reduce(function (n, k) { return n + p[k]; }, 0), tl = l.ar + l.en;
+    var row = function (name, n, tot, color) { return '<div class="kv"><span><i class="sw" style="background:' + color + '"></i>' + name + '</span><b>' + fmt(n) + ' · ' + pct(n, tot) + '%</b></div><div class="bar"><i style="width:' + pct(n, tot) + '%;background:' + color + '"></i></div>'; };
+    $('#mix').innerHTML = (Object.keys(p).sort(function (a, b) { return p[b] - p[a]; }).map(function (k) { return row(PL[k] || k, p[k], tp, PLC[k] || '#888'); }).join('') || '<p class="note">—</p>') +
+      (tl ? '<div style="height:10px"></div>' + row('عربي', l.ar, tl, '#FF5A1F') + row('English', l.en, tl, '#9AA0AD') : '');
+  }
+  function stat(n, label) { return '<div><b>' + fmt(n) + '</b><span>' + label + '</span></div>'; }
+  function drawNabd() {
+    var n = data.nabd, el = $('#nabdP');
+    if (!n) { el.innerHTML = '<p class="note">تعذّر الاتصال بخادم نَبْض.</p>'; return; }
+    var t = n.today || {}, msgs = (t.text || 0) + (t.voice || 0) + (t.photo || 0) + (t.draw || 0);
+    var series = {}; (n.series || []).forEach(function (r) { (series[r.day] = series[r.day] || {})[r.k] = r.n; });
+    var days = []; for (var i = 13; i >= 0; i--) days.push(new Date((n.now || Date.now()) - i * 864e5 + 3 * 36e5).toISOString().slice(0, 10));
+    var K = [['msg_text', '#3C5BD6', 'كتابة'], ['msg_voice', '#FF5A1F', 'صوت'], ['msg_photo', '#5BC08A', 'صور'], ['msg_draw', '#E8B04B', 'رسم']];
+    var tot = days.map(function (d) { return K.reduce(function (s, k) { return s + ((series[d] || {})[k[0]] || 0); }, 0); }), max = Math.max.apply(null, tot.concat([1]));
+    var bars = days.map(function (d, i) { var acc = ''; K.forEach(function (k) { var v = (series[d] || {})[k[0]] || 0; if (v) acc += '<i style="height:' + (v / max * 100) + '%;background:' + k[1] + '" title="' + d + ' · ' + k[2] + ': ' + v + '"></i>'; }); return '<div title="' + d + ': ' + tot[i] + '">' + acc + '</div>'; }).join('');
+    el.innerHTML = '<div class="m4">' + stat(n.families, 'عائلة') + stat(n.members, 'فرد') + stat(n.devices, 'جهاز') + stat(n.online, 'متصل الآن') + '</div>' +
+      '<div class="kv"><span>الأفراد</span><b>' + fmt(n.parents) + ' والدين · ' + fmt(n.kids) + ' أبناء · ' + fmt(n.admins) + ' مشرف</b></div>' +
+      '<div class="kv"><span>نشاط الأجهزة</span><b>اليوم ' + fmt(n.activeToday) + ' · الأسبوع ' + fmt(n.activeWeek) + ' · عائلات نشطة ' + fmt(n.activeFamiliesWeek) + '</b></div>' +
+      '<div class="kv"><span>رسائل اليوم</span><b>' + fmt(msgs) + ' (✍️ ' + fmt(t.text) + ' · 🎙️ ' + fmt(t.voice) + ' · 🖼️ ' + fmt(t.photo) + ' · 🎨 ' + fmt(t.draw) + ') · 💓 نبضات ' + fmt(t.nudges) + '</b></div>' +
+      '<div class="kv"><span>بانتظار التوصيل</span><b>' + fmt(n.queued) + ' رسالة · ' + (n.queuedBytes > 1048576 ? (n.queuedBytes / 1048576).toFixed(1) + ' MB' : Math.round((n.queuedBytes || 0) / 1024) + ' KB') + '</b></div>' +
+      '<div class="kv"><span>🔔 الإشعارات</span><b>' + fmt(n.subs) + ' جهاز</b></div>' +
+      (n.versions && n.versions.length ? '<div class="kv"><span>الإصدارات</span><b dir="ltr">' + n.versions.map(function (v) { return 'v' + esc(v.ver || '?') + ' · ' + v.n; }).join('  ') + '</b></div>' : '') +
+      '<div class="mini">' + bars + '</div><div class="legend">' + K.map(function (k) { return '<span><i style="background:' + k[1] + '"></i>' + k[2] + '</span>'; }).join('') + '<span style="margin-inline-start:auto">رسائل آخر ١٤ يوم</span></div>';
+  }
+  function drawSiraj() {
+    var s = data.siraj, el = $('#sirajP');
+    if (!s) { el.innerHTML = '<p class="note">تعذّر الاتصال بخادم سِراج.</p>'; return; }
+    el.innerHTML = '<div class="m4">' + stat(s.families, 'عائلة مربوطة') + stat(s.devices, 'جهاز مربوط') + stat(s.activeWeek, 'نشط هالأسبوع') + stat(s.subs, '🔔 إشعارات') + '</div>' +
+      '<div class="kv"><span>أجهزة الإشعارات</span><b>' + fmt(s.parentDevices) + ' وليّ أمر · ' + fmt(s.kidDevices) + ' طفل</b></div>' +
+      '<p class="note">«مربوطة» = العائلات اللي ربطت أكثر من جهاز. كل أجهزة سِراج (حتى غير المربوطة) تظهر في بطاقة سِراج فوق.</p>';
+  }
+  function drawFeed(j, now) {
+    var only = $('#onlyLive').checked, all = $('#feed').dataset.all === '1';
+    var list = (j.recent || []).filter(function (r) { return inApp(r.app) && (!only || now - r.last < (j.online_ms || 150e3)); });
+    $('#feed').innerHTML = list.slice(0, all ? 60 : 12).map(function (r) {
+      var a = SBY[r.app] || { name: r.app, color: '#888' }, live = now - r.last < (j.online_ms || 150e3);
+      return '<li><span class="dot" style="background:' + a.color + '"></span><div class="who">' + a.name + ' · ' + (PL[r.plat] || r.plat) + (r.lang === 'en' ? ' · EN' : '') +
+        '<small>أول زيارة ' + ago(r.first, now) + ' · فتحه ' + fmt(r.opens) + ' مرة' + (r.ver ? ' · v' + esc(r.ver) : '') + '</small></div>' +
+        (r.app === 'site' ? '' : '<span class="tag ' + (r.inst ? 'inst' : '') + '">' + (r.inst ? 'مثبّت' : 'متصفح') + '</span>') +
+        '<span class="when ' + (live ? 'now' : '') + '">' + (live ? '<span class="live-dot"></span>' : '') + ago(r.last, now) + '</span></li>';
+    }).join('') || '<li><span class="note">' + (only ? 'ما أحد متصل الحين.' : 'ما فيه نشاط بعد.') + '</span></li>';
+    if (list.length > 12) $('#feed').insertAdjacentHTML('beforeend', '<li><button class="ghost" id="feedMore" style="margin:auto">' + (all ? 'عرض أقل' : 'عرض المزيد (' + list.length + ')') + '</button></li>');
+    var fm = $('#feedMore'); if (fm) fm.onclick = function () { $('#feed').dataset.all = all ? '' : '1'; drawFeed(j, now); };
+  }
+  function exportCSV() {
+    var j = ST.j; if (!j) return;
+    var days = dayList(j), act = {}, opens = {}, fresh = j.newByDay || {};
+    (j.series || []).forEach(function (r) { act[r.day + '|' + r.app] = r.n; opens[r.day + '|' + r.app] = r.opens; });
+    var rows = [['day', 'app', 'active_devices', 'opens', 'new_devices']];
+    days.forEach(function (d) { SA.forEach(function (a) { var k = d + '|' + a.id; if (act[k] || fresh[k]) rows.push([d, a.id, act[k] || 0, opens[k] || 0, fresh[k] || 0]); }); });
+    var blob = new Blob(['﻿' + rows.map(function (r) { return r.join(','); }).join('\n')], { type: 'text/csv;charset=utf-8' });
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'wamdarc-stats-' + j.today + '-' + j.days + 'd.csv'; a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+  }
+  document.querySelectorAll('#range button').forEach(function (b) { b.onclick = function () { ST.days = +b.dataset.d; saveST(); loadStats(); }; });
+  document.querySelectorAll('#metric button').forEach(function (b) { b.onclick = function () { ST.metric = b.dataset.m; saveST(); renderStats(); }; });
+  $('#onlyLive').onchange = function () { if (ST.j) drawFeed(ST.j, ST.j.now); };
+  $('#csv').onclick = exportCSV;
   var statsTimer = null;
   function showTab(t) {
     document.querySelectorAll('.tabs button').forEach(function (b) { b.classList.toggle('on', b.dataset.tab === t); });
