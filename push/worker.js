@@ -547,7 +547,8 @@ function dayTimes(cfg, ymd) {
   return { T, h };
 }
 function nextFalaq(cfg, after) {
-  const r = cfg.rem, base = addDays(localYMD(after, cfg.tz), 0), c = [];
+  const r = cfg.rem || {}, base = addDays(localYMD(after, cfg.tz), 0), c = [];   // اشتراكات الإصدار الأول ما فيها rem
+  cfg.prayers = cfg.prayers || {};
   // الأذان، وقبل الأذان، وأذكار الصباح والمساء: نبحث في 3 أيام
   for (let off = 0; off < 3; off++) {
     const day = addDays(base, off), { T } = dayTimes(cfg, day), fri = day.wd === 5;
@@ -859,23 +860,28 @@ async function tick(env) {
   let budget = perTick(env);
   const { results } = await env.DB.prepare('SELECT * FROM subs WHERE next_at <= ? ORDER BY next_at LIMIT ?').bind(now + 30e3, budget).all();
   for (const r of results || []) {
-    let cfg, state; try { cfg = JSON.parse(r.cfg); state = JSON.parse(r.state || '{}'); } catch (e) { continue; }
-    const app = r.app || 'falaq', lang = MSG[cfg.lang] ? cfg.lang : 'ar';
-    // الأذان وما قبله: صالح 15 دقيقة فقط؛ التذكيرات الأخرى: 12 ساعة (لو تأخر الخادم)
-    const urgent = KEYS.includes(r.next_key) || r.next_key === 'jumuah' || r.next_key === 'pre';
-    const fresh = r.next_key && now - r.next_at < (urgent ? 15 * 6e4 : 12 * 36e5);
-    let payload = null;
-    if (fresh) { try { payload = buildPayload(app, r.next_key, r.next_data ? JSON.parse(r.next_data) : null, lang); } catch (e) {} }
-    if (r.next_key === 'backup') state.bk = now;
-    // نحدّث الموعد القادم قبل الإرسال حتى لا يتكرر الإشعار
-    const [nAt, nKey, nData] = nextCols(nextEvent(app, cfg, state, Math.max(now + 30e3, (r.next_at || 0) + 6e4)));
-    await env.DB.prepare('UPDATE subs SET next_at = ?, next_key = ?, next_data = ?, state = ? WHERE id = ?').bind(nAt, nKey, nData, JSON.stringify(state), r.id).run();
-    if (payload) {
-      budget--;
-      try {
-        const st = await sendPush(env, r, payload, urgent ? 'high' : 'normal');
-        if (st === 404 || st === 410) await env.DB.prepare('DELETE FROM subs WHERE id = ?').bind(r.id).run();
-      } catch (e) {}
+    // كل اشتراك لحاله: لو واحد فيه خطأ ما يوقف الباقين (كان اشتراك قديم يوقف كل إشعارات فلق)
+    try {
+      let cfg, state; try { cfg = JSON.parse(r.cfg); state = JSON.parse(r.state || '{}'); } catch (e) { throw e; }
+      const app = r.app || 'falaq', lang = MSG[cfg.lang] ? cfg.lang : 'ar';
+      // الأذان وما قبله: صالح 15 دقيقة فقط؛ التذكيرات الأخرى: 12 ساعة (لو تأخر الخادم)
+      const urgent = KEYS.includes(r.next_key) || r.next_key === 'jumuah' || r.next_key === 'pre';
+      const fresh = r.next_key && now - r.next_at < (urgent ? 15 * 6e4 : 12 * 36e5);
+      let payload = null;
+      if (fresh) { try { payload = buildPayload(app, r.next_key, r.next_data ? JSON.parse(r.next_data) : null, lang); } catch (e) {} }
+      if (r.next_key === 'backup') state.bk = now;
+      // نحدّث الموعد القادم قبل الإرسال حتى لا يتكرر الإشعار
+      const [nAt, nKey, nData] = nextCols(nextEvent(app, cfg, state, Math.max(now + 30e3, (r.next_at || 0) + 6e4)));
+      await env.DB.prepare('UPDATE subs SET next_at = ?, next_key = ?, next_data = ?, state = ? WHERE id = ?').bind(nAt, nKey, nData, JSON.stringify(state), r.id).run();
+      if (payload) {
+        budget--;
+        try {
+          const st = await sendPush(env, r, payload, urgent ? 'high' : 'normal');
+          if (st === 404 || st === 410) await env.DB.prepare('DELETE FROM subs WHERE id = ?').bind(r.id).run();
+        } catch (e) {}
+      }
+    } catch (e) {
+      try { await env.DB.prepare('UPDATE subs SET next_at = ? WHERE id = ?').bind(now + 6 * 36e5, r.id).run(); } catch (e2) {}
     }
   }
   if (budget <= 0) return;
