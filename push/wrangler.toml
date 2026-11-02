@@ -1,0 +1,19 @@
+# خادم إشعارات وإحصائيات ومض آرك (push-wamdarc) — نشر تلقائي من GitHub عبر Cloudflare Workers Builds
+# في إعدادات الخادم: Build → Root directory = push
+# المتغيرات السرية (ADMIN_KEY وغيرها) تبقى في Cloudflare كما هي ولا تنكتب هنا.
+name = "push-wamdarc"
+main = "worker.js"
+compatibility_date = "2025-10-01"
+workers_dev = true
+keep_vars = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "falaq"
+database_id = "3cb52fee-bfc3-4ee8-a362-15f5788ec267"
+
+[triggers]
+crons = ["* * * * *"]
+
+[observability]
+enabled = true

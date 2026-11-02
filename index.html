@@ -65,6 +65,8 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px;margin-top:14px
 .hist li{padding:10px 0;border-top:1px solid var(--line);font-size:14px;display:flex;gap:10px;align-items:flex-start}
 .hist li:first-child{border-top:0}
 .hist li .dot{margin-top:7px}
+.hist.log .lb{font-size:13px;color:var(--text);opacity:.8;margin:2px 0;white-space:pre-line}
+.hist.log b{font-weight:600}
 .hist span{color:var(--muted);font-size:12px;display:block}
 .links{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .links a{display:block;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:var(--text);text-decoration:none;font-size:14px}
@@ -173,7 +175,8 @@ em.up{color:var(--ok)} em.down{color:var(--bad)}
   </section>
 
   <div id="panel" hidden>
-    <nav class="tabs" role="tablist"><button class="on" data-tab="stats" role="tab">📊 الإحصائيات</button><button data-tab="notif" role="tab">🔔 الإشعارات</button></nav>
+    <nav class="tabs" role="tablist"><button class="on" data-tab="stats" role="tab">📊 الإحصائيات</button><button data-tab="notif" role="tab">🔔 الإشعارات</button><button data-tab="logs" role="tab">🗂️ السجلات</button></nav>
+    <div id="bkNag" class="setup" hidden style="margin-top:14px;cursor:pointer"></div>
 
     <div id="v-stats">
       <div id="statsSetup" class="setup" hidden style="margin-top:14px"></div>
@@ -218,6 +221,21 @@ em.up{color:var(--ok)} em.down{color:var(--bad)}
       </div>
     </div>
 
+    <div id="v-logs" class="narrow" hidden>
+      <section>
+        <h2>النسخة الاحتياطية</h2>
+        <p class="note" style="margin-top:0">السجلات والإحصائيات تنحفظ في Cloudflare بدون حذف تلقائي. ولزيادة الأمان نزّل نسخة على جهازك كل شهر: ملف واحد فيه الإحصائيات اليومية وكل الأجهزة (مجهولة) وكل الرسائل العامة لكل التطبيقات. ما فيه اشتراكات الإشعارات ولا أي محتوى عائلي.</p>
+        <div class="row" style="margin-top:12px;flex-wrap:wrap"><button class="primary" id="bkGo" style="margin:0;width:auto;padding:12px 22px">⤓ نزّل نسخة احتياطية كاملة</button><span class="tiny" id="bkLast"></span></div>
+        <div class="msg" id="bkMsg"></div>
+      </section>
+      <section>
+        <h2>سجل الرسائل العامة<span class="sp"></span><span class="tiny" id="logCount"></span></h2>
+        <div class="chips" id="logf" style="margin-bottom:10px"></div>
+        <ul class="hist log" id="logList"></ul>
+        <button class="ghost" id="logMore" hidden style="margin:10px auto 0;display:block">عرض المزيد</button>
+      </section>
+    </div>
+
     <div id="v-notif" class="narrow" hidden>
     <section>
       <h2>التطبيقات<span class="sp"></span><button class="ghost" id="refresh">تحديث ↻</button></h2>
@@ -247,7 +265,7 @@ em.up{color:var(--ok)} em.down{color:var(--bad)}
     </section>
 
     <section>
-      <h2>آخر الرسائل</h2>
+      <h2>آخر الرسائل<span class="sp"></span><button class="ghost" id="toLogs">السجل الكامل ←</button></h2>
       <ul class="hist" id="hist"></ul>
     </section>
 
@@ -381,7 +399,7 @@ em.up{color:var(--ok)} em.down{color:var(--bad)}
       '<div class="kpi"><b>' + fmt(newRange) + '</b><span>جهاز جديد خلال ' + rl + '</span></div>' +
       '<div class="kpi"><b>' + fmt(sum(T, 'inst', selApps)) + '</b><span>مثبّت على الشاشة</span></div>' +
       '<div class="kpi"><b>' + pct(back, retN) + '%</b><span>يرجعون (' + fmt(back) + ' من ' + fmt(retN) + ')</span></div>';
-    $('#updated').textContent = new Date(now).toLocaleTimeString('ar-SA-u-nu-latn', { hour: 'numeric', minute: '2-digit' });
+    $('#updated').textContent = new Date(now).toLocaleTimeString('ar-SA-u-ca-gregory-nu-latn', { hour: 'numeric', minute: '2-digit' });
     var plat = {}; (j.plat || []).forEach(function (r) { (plat[r.app] = plat[r.app] || []).push(r); });
     var ver = {}; (j.ver || []).forEach(function (r) { (ver[r.app] = ver[r.app] || []).push(r); });
     var cmpV = function (a, b) { var x = String(a).split('.'), y = String(b).split('.'); for (var i = 0; i < Math.max(x.length, y.length); i++) { var d = (+x[i] || 0) - (+y[i] || 0); if (d) return d; } return 0; };
@@ -515,11 +533,59 @@ em.up{color:var(--ok)} em.down{color:var(--bad)}
   var statsTimer = null;
   function showTab(t) {
     document.querySelectorAll('.tabs button').forEach(function (b) { b.classList.toggle('on', b.dataset.tab === t); });
-    $('#v-stats').hidden = t !== 'stats'; $('#v-notif').hidden = t !== 'notif';
+    $('#v-stats').hidden = t !== 'stats'; $('#v-notif').hidden = t !== 'notif'; $('#v-logs').hidden = t !== 'logs';
+    if (t === 'logs' && !LOG.loaded && !$('#panel').hidden) loadLog(true);
     try { localStorage.setItem('wamd-admin-tab', t); } catch (e) {}
   }
   document.querySelectorAll('.tabs button').forEach(function (b) { b.onclick = function () { showTab(b.dataset.tab); }; });
-  try { if (localStorage.getItem('wamd-admin-tab') === 'notif') showTab('notif'); } catch (e) {}
+  /* ---------- السجلات والنسخ الاحتياطي ---------- */
+  var LOG = { items: [], next: 0, more: false, loaded: false, app: 'all' };
+  function loadLog(reset) {
+    if (reset) { LOG.items = []; LOG.next = 0; }
+    $('#logMore').hidden = true;
+    return api(NABD, '/wamd/log?limit=40' + (LOG.next ? '&before=' + LOG.next : '')).then(function (j) {
+      LOG.loaded = true; LOG.items = LOG.items.concat(j.items || []); LOG.next = j.next; LOG.more = j.more;
+      var c = j.counts || {}; $('#logCount').textContent = 'المجموع ' + fmt((c.push || 0) + (c.siraj || 0) + (c.nabd || 0)) + ' رسالة';
+      drawLog();
+    }, function (e) { $('#logList').innerHTML = '<li><span class="note">' + esc(errText(e)) + '</span></li>'; });
+  }
+  function drawLog() {
+    $('#logf').innerHTML = '<button data-a="all" class="' + (LOG.app === 'all' ? 'on' : '') + '">الكل</button>' + APPS.map(function (a) { return '<button data-a="' + a.id + '" class="' + (LOG.app === a.id ? 'on' : '') + '"><i style="background:' + a.color + '"></i>' + a.name + '</button>'; }).join('');
+    $('#logf').querySelectorAll('button').forEach(function (b) { b.onclick = function () { LOG.app = b.dataset.a; drawLog(); }; });
+    var list = LOG.items.filter(function (m) { return LOG.app === 'all' || m.apps.indexOf(LOG.app) >= 0; });
+    $('#logList').innerHTML = list.map(function (m) {
+      var c = (BY[m.apps[0]] || {}).color || '#888';
+      return '<li><span class="dot" style="background:' + c + '"></span><div style="flex:1;min-width:0"><b>' + esc(m.title) + '</b>' + (m.kind === 'update' ? ' <span class="tag">تحديث</span>' : '') +
+        (m.body ? '<div class="lb">' + esc(m.body) + '</div>' : '') +
+        '<span>' + new Date(m.t).toLocaleString('ar-SA-u-ca-gregory-nu-latn', { dateStyle: 'medium', timeStyle: 'short' }) + ' · ' + m.apps.map(function (a) { return (BY[a] || {}).name || a; }).join('، ') + ' · ' + fmt(m.total) + ' مستلم</span></div></li>';
+    }).join('') || '<li><span class="note">ما فيه رسائل.</span></li>';
+    $('#logMore').hidden = !LOG.more;
+  }
+  $('#logMore').onclick = function () { loadLog(false); };
+  $('#toLogs').onclick = function () { showTab('logs'); };
+  function bkInfo() {
+    var last = 0; try { last = +localStorage.getItem('wamd-admin-bk') || 0; } catch (e) {}
+    var days = last ? Math.floor((Date.now() - last) / 864e5) : null;
+    $('#bkLast').textContent = last ? 'آخر نسخة: ' + new Date(last).toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { dateStyle: 'medium' }) + ' (قبل ' + days + ' يوم)' : 'ما نزّلت نسخة من هذا الجهاز بعد';
+    var nag = $('#bkNag'); nag.hidden = last && days < 30;
+    nag.textContent = last ? '🗂️ صار لك ' + days + ' يوم بدون نسخة احتياطية للسجلات. اضغط هنا لتنزيل نسخة.' : '🗂️ ما عندك نسخة احتياطية للسجلات على جهازك. اضغط هنا لتنزيل أول نسخة.';
+  }
+  $('#bkNag').onclick = function () { showTab('logs'); };
+  $('#bkGo').onclick = function () {
+    var btn = $('#bkGo'); btn.disabled = true; show($('#bkMsg'), 'ok', 'نجهّز النسخة…');
+    api(NABD, '/wamd/backup').then(function (j) {
+      var txt = JSON.stringify(j), blob = new Blob([txt], { type: 'application/json' });
+      var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = 'wamdarc-admin-backup-' + new Date().toISOString().slice(0, 10) + '.json'; a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 3000);
+      try { localStorage.setItem('wamd-admin-bk', String(Date.now())); } catch (e) {}
+      var st = j.stats || {}, m = j.messages || {};
+      show($('#bkMsg'), 'ok', '✓ نزلت النسخة (' + Math.round(txt.length / 1024) + ' KB): ' + fmt((st.devices || []).length) + ' جهاز · ' + fmt((st.days || []).length) + ' سجل يومي · ' + fmt((m.push || []).length + (m.siraj || []).length + (m.nabd || []).length) + ' رسالة. احفظها في iCloud أو Google Drive.');
+      bkInfo();
+    }, function (e) { show($('#bkMsg'), 'bad', errText(e)); }).then(function () { btn.disabled = false; });
+  };
+  bkInfo();
+  try { var lt = localStorage.getItem('wamd-admin-tab'); if (lt === 'notif' || lt === 'logs') showTab(lt); } catch (e) {}
   setInterval(function () { if (!$('#panel').hidden && !$('#v-stats').hidden && document.visibilityState === 'visible') loadStats(); }, 30000);
 
   function load() {
@@ -536,6 +602,7 @@ em.up{color:var(--ok)} em.down{color:var(--bad)}
       $('#login').hidden = true; $('#panel').hidden = false; $('#logout').hidden = false;
       render(res);
       loadStats();
+      if (!$('#v-logs').hidden) loadLog(true);
       return res;
     });
   }
@@ -578,7 +645,7 @@ em.up{color:var(--ok)} em.down{color:var(--bad)}
     hist.sort(function (a, b) { return b.t - a.t; });
     $('#hist').innerHTML = hist.slice(0, 12).map(function (m) {
       var c = (BY[m.apps[0]] || {}).color || '#888';
-      return '<li><span class="dot" style="background:' + c + '"></span><div>' + esc(m.title) + '<span>' + new Date(m.t).toLocaleString('ar-SA-u-nu-latn', { dateStyle: 'medium', timeStyle: 'short' }) + ' · ' +
+      return '<li><span class="dot" style="background:' + c + '"></span><div>' + esc(m.title) + '<span>' + new Date(m.t).toLocaleString('ar-SA-u-ca-gregory-nu-latn', { dateStyle: 'medium', timeStyle: 'short' }) + ' · ' +
         m.apps.map(function (a) { return (BY[a] || {}).name || a; }).join('، ') + ' · ' + m.total + ' مستلم</span></div></li>';
     }).join('') || '<li><span>لم ترسل رسائل بعد</span></li>';
     preview();
