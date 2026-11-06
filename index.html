@@ -4,6 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src https://push-wamdarc.bsshfi.workers.dev https://siraj-api.bsshfi.workers.dev https://nabd-api.bsshfi.workers.dev; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<script>
+/* حماية: فتح اللوحة دائماً عبر HTTPS، ورفض فتحها داخل إطار موقع ثاني (clickjacking) */
+if (location.protocol === 'http:' && !/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) location.replace('https:' + location.href.slice(5));
+if (window.top !== window.self) { try { window.top.location = window.self.location.href; } catch (e) { document.documentElement.style.display = 'none'; } }
+</script>
 <meta name="theme-color" content="#111318">
 <title>إدارة ومض آرك</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23111318'/%3E%3Cpath d='M19 2.5c.4 2.4.7 2.7 3 3-2.3.4-2.6.7-3 3-.4-2.3-.7-2.6-3-3 2.3-.3 2.6-.6 3-3z' fill='%23FF5A1F'/%3E%3Cpath d='M3 18c4-7 9-11 16-12' fill='none' stroke='%23F2EFEA' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E">
@@ -170,7 +177,8 @@ em.up{color:var(--ok)} em.down{color:var(--bad)}
   <section id="login">
     <h2>مفتاح الإدارة</h2>
     <div class="row"><input type="password" id="key" autocomplete="current-password" placeholder="ADMIN_KEY" aria-label="مفتاح الإدارة"><button id="keyGo">دخول</button></div>
-    <p class="note">نفس قيمة ADMIN_KEY في الخوادم (push-wamdarc و siraj-api و nabd-api). تنحفظ على هذا الجهاز فقط.</p>
+    <label class="note" style="display:flex;align-items:center;gap:8px;margin-top:10px;cursor:pointer"><input type="checkbox" id="remember" style="width:18px;height:18px;accent-color:var(--accent)"> تذكّرني على هذا الجهاز (لجهازك الشخصي فقط)</label>
+    <p class="note">بدون «تذكّرني» المفتاح ينمسح أول ما تقفل التبويب، وبعد ٣٠ دقيقة بدون استخدام.</p>
     <div class="msg" id="loginMsg"></div>
   </section>
 
@@ -297,7 +305,19 @@ em.up{color:var(--ok)} em.down{color:var(--bad)}
     { id: 'nabd', name: 'نَبْض', url: 'nabd.wamdarc.com', color: '#3C5BD6', srv: 'nabd' }
   ];
   var BY = {}; APPS.forEach(function (a) { BY[a.id] = a; });
-  var KEY = ''; try { KEY = localStorage.getItem('wamd-admin') || ''; } catch (e) {}
+  /* مفتاح الإدارة: يبقى للجلسة فقط (sessionStorage) إلا إذا اخترت «تذكّرني».
+     النسخ القديمة كانت تحفظه دائماً في localStorage، فنمسحه لو ما كان مختار «تذكّرني». */
+  var REM = false, KEY = '';
+  try {
+    REM = localStorage.getItem('wamd-admin-rem') === '1';
+    if (!REM) localStorage.removeItem('wamd-admin');
+    KEY = sessionStorage.getItem('wamd-admin') || (REM ? localStorage.getItem('wamd-admin') || '' : '');
+  } catch (e) {}
+  function forget() { try { sessionStorage.removeItem('wamd-admin'); localStorage.removeItem('wamd-admin'); localStorage.removeItem('wamd-admin-rem'); } catch (e) {} }
+  /* قفل تلقائي بعد ٣٠ دقيقة بدون أي حركة (لما ما يكون «تذكّرني» مفعّل) */
+  var IDLE = 30 * 60e3, lastAct = Date.now();
+  ['pointerdown', 'keydown', 'scroll', 'touchstart'].forEach(function (ev) { addEventListener(ev, function () { lastAct = Date.now(); }, { passive: true }); });
+  setInterval(function () { if (KEY && !REM && Date.now() - lastAct > IDLE) { forget(); location.reload(); } }, 30e3);
   var kind = 'news', data = { push: null, siraj: null, nabd: null };
   var TPL = {
     fitr: { arT: 'عيدكم مبارك 🌙', arB: 'عيد فطر سعيد، تقبّل الله منا ومنكم صالح الأعمال. كل عام وأنتم بخير.', enT: 'Eid Mubarak 🌙', enB: 'Wishing you a blessed Eid al-Fitr. May Allah accept from us and from you.' },
@@ -326,6 +346,7 @@ em.up{color:var(--ok)} em.down{color:var(--bad)}
     if (e.error === 'no-key') return 'ما انضاف ADMIN_KEY في إعدادات هذا الخادم بعد.';
     if (e.error === 'unauthorized' || e.error === 'forbidden') return 'المفتاح غير صحيح لهذا الخادم.';
     if (e.error === 'network') return 'تعذّر الاتصال بالخادم.';
+    if (e.error === 'locked') return 'محاولات خاطئة كثيرة — الدخول مقفل مؤقتاً (حتى ٣٠ دقيقة). جرّب لاحقاً.';
     return 'خطأ (' + (e.status || '') + '): ' + (e.error || '') + (e.detail ? ' — ' + e.detail : '');
   }
 
@@ -654,15 +675,23 @@ em.up{color:var(--ok)} em.down{color:var(--bad)}
   function login() {
     KEY = $('#key').value.trim();
     if (!KEY) return;
-    load().then(function () { try { localStorage.setItem('wamd-admin', KEY); } catch (e) {} })
+    REM = !!$('#remember').checked;
+    load().then(function () {
+      try {
+        sessionStorage.setItem('wamd-admin', KEY);
+        if (REM) { localStorage.setItem('wamd-admin', KEY); localStorage.setItem('wamd-admin-rem', '1'); }
+        else { localStorage.removeItem('wamd-admin'); localStorage.removeItem('wamd-admin-rem'); }
+      } catch (e) {}
+      $('#key').value = '';
+    })
       .catch(function (e) { show($('#loginMsg'), 'bad', errText(e)); });
   }
   $('#keyGo').onclick = login;
   $('#key').onkeydown = function (e) { if (e.key === 'Enter') login(); };
   $('#refresh').onclick = function () { load().catch(function () {}); };
   $('#refresh2').onclick = function () { load().catch(function () {}); };
-  $('#logout').onclick = function () { try { localStorage.removeItem('wamd-admin'); } catch (e) {} location.reload(); };
-  if (KEY) load().catch(function () { $('#login').hidden = false; });
+  $('#logout').onclick = function () { forget(); location.reload(); };
+  if (KEY) load().catch(function (e) { if (e && (e.error === 'unauthorized' || e.error === 'forbidden')) forget(); $('#login').hidden = false; });
 
   function checked() { return [].slice.call(document.querySelectorAll('.pk input:checked')).map(function (i) { return i.value; }); }
   function preview() {

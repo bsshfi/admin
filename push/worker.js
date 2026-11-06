@@ -751,7 +751,7 @@ async function handle(req, env) {
   if (req.method === 'GET' && url.pathname === '/') return json({ ok: true, service: 'wamdarc-push', apps: APPS });
   if (req.method === 'GET' && url.pathname === '/stats') {
     if (!env.ADMIN_KEY) return json({ error: 'no-key' }, 503);
-    if (!isAdmin(req, env)) return json({ error: 'unauthorized' }, 401);
+    { const g = await adminGate(req, env.DB, () => isAdmin(req, env)); if (g !== 'ok') return json({ error: g === 'locked' ? 'locked' : 'unauthorized' }, g === 'locked' ? 429 : 401); }
     const { results } = await env.DB.prepare("SELECT app, COUNT(*) AS n FROM subs GROUP BY app").all();
     const q = await env.DB.prepare('SELECT COUNT(*) AS n FROM outbox').first();
     const hist = (await env.DB.prepare('SELECT created, apps, body, total FROM messages ORDER BY n DESC LIMIT 8').all()).results;
@@ -759,7 +759,7 @@ async function handle(req, env) {
   }
   if (req.method === 'GET' && url.pathname === '/analytics') {
     if (!env.ADMIN_KEY) return json({ error: 'no-key' }, 503);
-    if (!isAdmin(req, env)) return json({ error: 'unauthorized' }, 401);
+    { const g = await adminGate(req, env.DB, () => isAdmin(req, env)); if (g !== 'ok') return json({ error: g === 'locked' ? 'locked' : 'unauthorized' }, g === 'locked' ? 429 : 401); }
     return json(await analytics(env));
   }
   if (req.method !== 'POST') return json({ error: 'not found' }, 404);
@@ -793,7 +793,7 @@ async function handle(req, env) {
   }
   if (url.pathname === '/broadcast') {
     if (!env.ADMIN_KEY) return json({ error: 'no-key' }, 503);
-    if (!isAdmin(req, env)) return json({ error: 'unauthorized' }, 401);
+    { const g = await adminGate(req, env.DB, () => isAdmin(req, env)); if (g !== 'ok') return json({ error: g === 'locked' ? 'locked' : 'unauthorized' }, g === 'locked' ? 429 : 401); }
     const apps = (Array.isArray(body.apps) ? body.apps : []).filter(a => APPS.includes(a));
     const clip = (s, n) => String(s || '').trim().slice(0, n);
     const msg = { ar: { title: clip(body.ar && body.ar.title, 80), body: clip(body.ar && body.ar.body, 300) }, en: { title: clip(body.en && body.en.title, 80), body: clip(body.en && body.en.body, 300) }, kind: body.kind === 'update' ? 'update' : 'news' };
@@ -899,8 +899,37 @@ async function tick(env) {
   // الإحصائيات والسجلات تنحفظ دائماً (بدون حذف تلقائي) — النسخ الاحتياطي من admin.wamdarc.com
 }
 
+/* ---------- حماية مفتاح الإدارة من التخمين ----------
+   ٢٠ محاولة خاطئة من نفس الشبكة خلال ساعة ← قفل ٣٠ دقيقة لهذه الشبكة
+   ١٠٠ محاولة خاطئة من أي مكان خلال ساعة ← قفل الإدارة كاملة ١٥ دقيقة (يحمي من التخمين الموزّع)
+   الدخول الصحيح يصفّر عدّاد الشبكة. */
+const AF = { ipMax: 20, ipLock: 30 * 60e3, allMax: 100, allLock: 15 * 60e3, win: 36e5 };
+async function adminGate(req, db, check) {
+  const now = Date.now();
+  const raw = (req.headers.get('X-Admin-Key') || req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '').trim();
+  if (!raw) return 'bad';
+  const ipb = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode('af:' + (req.headers.get('CF-Connecting-IP') || 'local'))));
+  const ip = [...ipb.slice(0, 12)].map((b) => b.toString(16).padStart(2, '0')).join('');
+  await db.prepare('CREATE TABLE IF NOT EXISTS afail (ip TEXT PRIMARY KEY, n INTEGER, last INTEGER, lock INTEGER)').run();
+  const rows = (await db.prepare("SELECT ip, n, last, lock FROM afail WHERE ip IN (?, '*')").bind(ip).all()).results || [];
+  if (rows.some((r) => r.lock > now)) return 'locked';
+  if (await check()) {
+    if (rows.some((r) => r.ip === ip)) await db.prepare('DELETE FROM afail WHERE ip=?').bind(ip).run();
+    return 'ok';
+  }
+  const st = [];
+  for (const [k, max, lock] of [[ip, AF.ipMax, AF.ipLock], ['*', AF.allMax, AF.allLock]]) {
+    const r = rows.find((x) => x.ip === k);
+    const n = (r && r.last > now - AF.win ? r.n : 0) + 1;
+    st.push(db.prepare('INSERT INTO afail (ip, n, last, lock) VALUES (?,?,?,?) ON CONFLICT(ip) DO UPDATE SET n=excluded.n, last=excluded.last, lock=excluded.lock')
+      .bind(k, n >= max ? 0 : n, now, n >= max ? now + lock : 0));
+  }
+  await db.batch(st);
+  return 'bad';
+}
+
 export default {
-  fetch: (req, env) => handle(req, env).catch(e => json({ error: String(e && e.message || e) }, 500)),
+  fetch: (req, env) => handle(req, env).catch(e => { console.error(e); return json({ error: 'server' }, 500); }),
   scheduled: (event, env, ctx) => ctx.waitUntil(tick(env))
 };
 
