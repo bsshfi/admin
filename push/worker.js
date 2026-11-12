@@ -390,7 +390,9 @@ const MSG = {
     maghrib: ['أذان المغرب', 'حان الآن وقت صلاة المغرب'],
     isha: ['أذان العشاء', 'حان الآن وقت صلاة العشاء'],
     test_falaq: ['فَلَق', 'تم تفعيل الإشعارات، وسيصلك تنبيه عند دخول وقت كل صلاة.'],
-    test_sahm: ['سهم', 'تم تفعيل الإشعارات. سيصلك تذكير بحفظ نسخة من أماكنك.'],
+    test_sahm: ['سهم', 'تم تفعيل الإشعارات. ينبهك سهم قبل الغروب إذا ثبّت المخيم أو السيارة، ويذكّرك بدخول المواسم وبحفظ نسخة من أماكنك.'],
+    sunset_camp: ['🌇 باقي نص ساعة على الغروب', 'ارجع للمخيم قبل الظلام، وسهم يوجهك له حتى بدون إنترنت.'],
+    sunset_car: ['🌇 باقي نص ساعة على الغروب', 'ارجع لسيارتك قبل الظلام، وسهم يوجهك لها حتى بدون إنترنت.'],
     test_khuta: ['خُطى', 'تم تفعيل الإشعارات. سنذكّرك بذكرى رحلاتك وبحفظ نسخة احتياطية.'],
     backup_sahm: ['نسخة احتياطية لأماكنك', 'مرّ شهر على آخر نسخة احتياطية. احفظ نسخة من أماكنك المفضلة حتى لا تضيع.'],
     backup_khuta: ['نسخة احتياطية لرحلاتك', 'مرّ شهر على آخر نسخة احتياطية. صدّر نسخة من رحلاتك وصورك من الإعدادات.'],
@@ -411,7 +413,9 @@ const MSG = {
     maghrib: ['Maghrib', 'It is time for Maghrib prayer'],
     isha: ['Isha', 'It is time for Isha prayer'],
     test_falaq: ['Falaq', 'Notifications are on. You will be notified at the start of each prayer time.'],
-    test_sahm: ['Sahm', 'Notifications are on. You will get backup reminders for your places.'],
+    test_sahm: ['Sahm', 'Notifications are on. Sahm reminds you before sunset when your camp or car is pinned, plus new seasons and backups.'],
+    sunset_camp: ['🌇 30 minutes to sunset', 'Head back to camp before dark. Sahm guides you there, even offline.'],
+    sunset_car: ['🌇 30 minutes to sunset', 'Head back to your car before dark. Sahm guides you there, even offline.'],
     test_khuta: ['Khuta', 'Notifications are on. We will remind you of trip anniversaries and backups.'],
     backup_sahm: ['Back up your places', 'It has been a month since your last backup. Save a copy of your places so they are never lost.'],
     backup_khuta: ['Back up your trips', 'It has been a month since your last backup. Export your trips and photos from Settings.'],
@@ -639,9 +643,25 @@ function nextTrips(cfg, after) {
   return best(c);
 }
 
+/* ---------- سهم: قبل الغروب بنص ساعة، ليوم ونص من تثبيت المخيم أو السيارة ---------- */
+function nextSunset(cfg, after) {
+  if (!cfg.prefs.sunset || !cfg.pts || !cfg.pts.length) return null;
+  const p = cfg.pts.find(x => x.n === 'camp') || cfg.pts[0], until = p.t + 36 * 36e5;
+  if (after > until) return null;
+  const base = localYMD(after, cfg.tz);
+  for (let off = 0; off < 3; off++) {
+    const day = addDays(base, off);
+    const T = globalThis.Astro.prayerTimes(day.y, day.m, day.d, p.lat, p.lng, { method: 'umm_alqura', asr: 1, adjust: {} });
+    if (!T || !T.maghrib) continue;
+    const at = T.maghrib.valueOf() - 30 * 6e4;
+    if (at > after && at > p.t && at <= until) return { at, key: 'sunset', data: { n: p.n } };
+  }
+  return null;
+}
+
 function nextEvent(app, cfg, state, after) {
   if (app === 'falaq') return nextFalaq(cfg, after);
-  if (app === 'sahm') return best([nextBackup(cfg, state, after), nextSeason(cfg, after)]);
+  if (app === 'sahm') return best([nextBackup(cfg, state, after), nextSeason(cfg, after), nextSunset(cfg, after)]);
   if (app === 'khuta') return best([nextBackup(cfg, state, after), nextTrips(cfg, after)]);
   return null;
 }
@@ -661,10 +681,10 @@ function buildPayload(app, key, data, lang) {
       ? { title: s ? 'دخل موسم ' + s[0] : 'دخل طالع ' + t[0], body: (s ? 'ودخل معه طالع ' + t[0] + '. ' : '') + temp + '.' }
       : { title: s ? s[1] + ' season begins' : t[1] + ' rises today', body: (s ? 'Along with the star ' + t[1] + '. ' : '') + temp + '.' });
   }
-  const k = key === 'backup' ? 'backup_' + app : key;
+  const k = key === 'backup' ? 'backup_' + app : key === 'sunset' ? 'sunset_' + (data && data.n === 'car' ? 'car' : 'camp') : key;
   const m = M[k];
   if (!m) return null;
-  Object.assign(base, { title: m[0], body: m[1] }, data || {});
+  Object.assign(base, { title: m[0], body: m[1] }, key === 'sunset' ? {} : data || {});
   if (key === 'azkarM') base.url = './#azkar=morning';
   if (key === 'azkarE') base.url = './#azkar=evening';
   if (key === 'white') base.url = './#moon';
@@ -694,7 +714,13 @@ function cleanCfg(app, c) {
     out.lastBackup = Number(c.lastBackup) > 0 ? Math.min(Number(c.lastBackup), Date.now()) : null;
     out.since = Number(c.since) > 0 ? Math.min(Number(c.since), Date.now()) : Date.now();
   }
-  if (app === 'sahm') out.prefs.seasons = !!p.seasons;
+  if (app === 'sahm') {
+    out.prefs.seasons = !!p.seasons;
+    out.prefs.sunset = p.sunset !== false;
+    // المخيم والسيارة: إحداثيات مقرّبة (≈100 م) ووقت التثبيت فقط
+    out.pts = (Array.isArray(c.pts) ? c.pts : []).slice(0, 2).filter(x => x && (x.n === 'camp' || x.n === 'car'))
+      .map(x => ({ n: x.n, lat: Math.round(num(x.lat, -90, 90) * 1000) / 1000, lng: Math.round(num(x.lng, -180, 180) * 1000) / 1000, t: Math.min(Number(x.t) || Date.now(), Date.now()) }));
+  }
   if (app === 'khuta') {
     out.prefs.anniv = p.anniv !== false; out.prefs.before = p.before !== false; out.prefs.after = p.after !== false;
     const okD = v => /^\d{4}-\d{2}-\d{2}$/.test(String(v || ''));
@@ -885,7 +911,7 @@ async function tick(env) {
       let cfg, state; try { cfg = JSON.parse(r.cfg); state = JSON.parse(r.state || '{}'); } catch (e) { throw e; }
       const app = r.app || 'falaq', lang = MSG[cfg.lang] ? cfg.lang : 'ar';
       // الأذان وما قبله: صالح 15 دقيقة فقط؛ التذكيرات الأخرى: 12 ساعة (لو تأخر الخادم)
-      const urgent = KEYS.includes(r.next_key) || r.next_key === 'jumuah' || r.next_key === 'pre';
+      const urgent = KEYS.includes(r.next_key) || r.next_key === 'jumuah' || r.next_key === 'pre' || r.next_key === 'sunset';
       const fresh = r.next_key && now - r.next_at < (urgent ? 15 * 6e4 : 12 * 36e5);
       let payload = null;
       if (fresh) { try { payload = buildPayload(app, r.next_key, r.next_data ? JSON.parse(r.next_data) : null, lang); } catch (e) {} }
