@@ -1,3 +1,4 @@
+import { EmailMessage } from 'cloudflare:email';
 /* خادم إشعارات ومض آرك — فَلَق وسهم وخُطى. ملف واحد جاهز للصق في Cloudflare. */
 /* فَلَق | FALAQ — محرك الحسابات الفلكية (بدون إنترنت)
    مواقيت الصلاة، الشمس، القمر، القبلة، المنازل، التقويم الهجري */
@@ -731,6 +732,11 @@ async function init(env) {
   await env.DB.prepare('CREATE INDEX IF NOT EXISTS devices_last ON devices (last)').run();
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS days (day TEXT NOT NULL, app TEXT NOT NULL, dev TEXT NOT NULL, opens INTEGER DEFAULT 0, PRIMARY KEY (day, app, dev))').run();
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS pages (day TEXT NOT NULL, path TEXT NOT NULL, n INTEGER DEFAULT 0, PRIMARY KEY (day, path))').run();
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS sched (n INTEGER PRIMARY KEY AUTOINCREMENT, created INTEGER, at INTEGER NOT NULL, apps TEXT NOT NULL, body TEXT NOT NULL, status TEXT NOT NULL DEFAULT \'wait\', result TEXT, done INTEGER)').run();
+  await env.DB.prepare('CREATE INDEX IF NOT EXISTS sched_at ON sched (status, at)').run();
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS appcfg (app TEXT PRIMARY KEY, v TEXT NOT NULL, updated INTEGER)').run();
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS stories (id TEXT PRIMARY KEY, app TEXT NOT NULL, data TEXT NOT NULL, active INTEGER DEFAULT 1, created INTEGER, updated INTEGER)').run();
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS reports (week TEXT PRIMARY KEY, created INTEGER, subject TEXT, html TEXT, sent INTEGER DEFAULT 0, err TEXT)').run();
   ready = true;
 }
 const nextCols = n => [n ? n.at : Date.now() + 6 * 36e5, n ? n.key : null, n && n.data ? JSON.stringify(n.data) : null];
@@ -756,6 +762,12 @@ async function handle(req, env) {
     const q = await env.DB.prepare('SELECT COUNT(*) AS n FROM outbox').first();
     const hist = (await env.DB.prepare('SELECT created, apps, body, total FROM messages ORDER BY n DESC LIMIT 8').all()).results;
     return json({ apps: results, queued: q ? q.n : 0, perTick: perTick(env), history: hist });
+  }
+  if (req.method === 'GET' && (url.pathname === '/cfg' || url.pathname === '/stories')) return publicRoute(url, env);
+  if (url.pathname.startsWith('/admin/')) {
+    if (!env.ADMIN_KEY) return json({ error: 'no-key' }, 503);
+    { const g = await adminGate(req, env.DB, () => isAdmin(req, env)); if (g !== 'ok') return json({ error: g === 'locked' ? 'locked' : 'unauthorized' }, g === 'locked' ? 429 : 401); }
+    return adminRoute(req, url, env);
   }
   if (req.method === 'GET' && url.pathname === '/analytics') {
     if (!env.ADMIN_KEY) return json({ error: 'no-key' }, 503);
@@ -794,20 +806,26 @@ async function handle(req, env) {
   if (url.pathname === '/broadcast') {
     if (!env.ADMIN_KEY) return json({ error: 'no-key' }, 503);
     { const g = await adminGate(req, env.DB, () => isAdmin(req, env)); if (g !== 'ok') return json({ error: g === 'locked' ? 'locked' : 'unauthorized' }, g === 'locked' ? 429 : 401); }
-    const apps = (Array.isArray(body.apps) ? body.apps : []).filter(a => APPS.includes(a));
-    const clip = (s, n) => String(s || '').trim().slice(0, n);
-    const msg = { ar: { title: clip(body.ar && body.ar.title, 80), body: clip(body.ar && body.ar.body, 300) }, en: { title: clip(body.en && body.en.title, 80), body: clip(body.en && body.en.body, 300) }, kind: body.kind === 'update' ? 'update' : 'news' };
-    if (!msg.en.title) msg.en = msg.ar;
-    if (!apps.length || !msg.ar.title) return json({ error: 'missing' }, 400);
-    const ph = apps.map(() => '?').join(',');
-    const ins = await env.DB.prepare('INSERT INTO messages (created, apps, body, total) VALUES (?, ?, ?, 0)').bind(Date.now(), apps.join(','), JSON.stringify(msg)).run();
-    const mid = ins.meta.last_row_id;
-    const r = await env.DB.prepare('INSERT INTO outbox (sub_id, msg) SELECT id, ? FROM subs WHERE app IN (' + ph + ')').bind(mid, ...apps).run();
-    const total = r.meta.changes || 0;
-    await env.DB.prepare('UPDATE messages SET total = ? WHERE n = ?').bind(total, mid).run();
-    return json({ ok: true, queued: total, perTick: perTick(env) });
+    const r = await queueBroadcast(env, body);
+    if (r.error) return json(r, 400);
+    return json({ ok: true, queued: r.queued, perTick: perTick(env) });
   }
   return json({ error: 'not found' }, 404);
+}
+
+async function queueBroadcast(env, body) {
+  const apps = (Array.isArray(body.apps) ? body.apps : []).filter(a => APPS.includes(a));
+  const clip = (s, n) => String(s || '').trim().slice(0, n);
+  const msg = { ar: { title: clip(body.ar && body.ar.title, 80), body: clip(body.ar && body.ar.body, 300) }, en: { title: clip(body.en && body.en.title, 80), body: clip(body.en && body.en.body, 300) }, kind: body.kind === 'update' ? 'update' : 'news' };
+  if (!msg.en.title) msg.en = msg.ar;
+  if (!apps.length || !msg.ar.title) return { error: 'missing' };
+  const ph = apps.map(() => '?').join(',');
+  const ins = await env.DB.prepare('INSERT INTO messages (created, apps, body, total) VALUES (?, ?, ?, 0)').bind(Date.now(), apps.join(','), JSON.stringify(msg)).run();
+  const mid = ins.meta.last_row_id;
+  const r = await env.DB.prepare('INSERT INTO outbox (sub_id, msg) SELECT id, ? FROM subs WHERE app IN (' + ph + ')').bind(mid, ...apps).run();
+  const total = r.meta.changes || 0;
+  await env.DB.prepare('UPDATE messages SET total = ? WHERE n = ?').bind(total, mid).run();
+  return { queued: total };
 }
 
 /* ---------- الإحصائيات (لكل التطبيقات والموقع) ---------- */
@@ -856,6 +874,8 @@ async function analytics(env) {
 const perTick = env => Math.max(1, Math.min(2000, parseInt(env.MAX_PER_TICK, 10) || 6));
 async function tick(env) {
   await init(env);
+  try { await runSched(env); } catch (e) { console.error('sched', e); }
+  try { await maybeWeekly(env); } catch (e) { console.error('report', e); }
   const now = Date.now();
   let budget = perTick(env);
   const { results } = await env.DB.prepare('SELECT * FROM subs WHERE next_at <= ? ORDER BY next_at LIMIT ?').bind(now + 30e3, budget).all();
@@ -897,6 +917,241 @@ async function tick(env) {
   // تنظيف رسائل لاشتراكات محذوفة
   await env.DB.prepare('DELETE FROM outbox WHERE sub_id NOT IN (SELECT id FROM subs)').run();
   // الإحصائيات والسجلات تنحفظ دائماً (بدون حذف تلقائي) — النسخ الاحتياطي من admin.wamdarc.com
+}
+
+/* =====================================================================
+   إدارة التطبيقات من admin.wamdarc.com
+   - الإشعارات المجدولة (لكل التطبيقات الخمسة؛ سِراج ونَبْض عبر Service Bindings)
+   - رسالة داخل التطبيق (إعلان/تنبيه) لكل تطبيق — تقرأها التطبيقات من /cfg
+   - قصص سِراج المضافة من اللوحة — يقرأها سِراج من /stories
+   - التقرير الأسبوعي كل أحد ٩ صباحاً بتوقيت الرياض (إيميل عبر Cloudflare Email Routing)
+   ===================================================================== */
+const ALL_APPS = ['sahm', 'falaq', 'khuta', 'siraj', 'nabd'];
+const APP_AR = { site: 'الموقع', sahm: 'سهم', falaq: 'فَلَق', khuta: 'خُطى', siraj: 'سِراج', nabd: 'نَبْض' };
+const clipS = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
+const svcPath = { siraj: 'SIRAJ', nabd: 'NABD' };
+
+async function callSvc(env, app, path, method, body) {
+  const b = env[svcPath[app]];
+  if (!b) return { error: 'no-binding' };
+  try {
+    const r = await b.fetch('https://' + app + '-api' + path, { method: method || 'GET', headers: { Authorization: 'Bearer ' + encodeURIComponent(env.ADMIN_KEY || ''), 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+    const t = await r.text(); let j = {}; try { j = JSON.parse(t); } catch (e) { j = { error: 'http-' + r.status }; }
+    if (!r.ok && !j.error) j.error = 'http-' + r.status;
+    return j;
+  } catch (e) { return { error: 'fetch' }; }
+}
+
+/* ---------- الإشعارات المجدولة ---------- */
+function cleanMsg(b) {
+  const apps = (Array.isArray(b.apps) ? b.apps : []).filter(a => ALL_APPS.includes(a));
+  const ar = { title: clipS(b.ar && b.ar.title, 80), body: clipS(b.ar && b.ar.body, 300) };
+  const en = { title: clipS(b.en && b.en.title, 80), body: clipS(b.en && b.en.body, 300) };
+  return { apps, ar, en, kind: b.kind === 'update' ? 'update' : 'news' };
+}
+async function sendNow(env, m) {
+  const out = {};
+  const pushApps = m.apps.filter(a => APPS.includes(a));
+  if (pushApps.length) { const r = await queueBroadcast(env, Object.assign({}, m, { apps: pushApps })); out.push = r.error ? { error: r.error } : { queued: r.queued }; }
+  for (const a of ['siraj', 'nabd']) if (m.apps.includes(a)) { const r = await callSvc(env, a, '/broadcast', 'POST', { ar: m.ar }); out[a] = r.error ? { error: r.error } : { sent: r.sent || 0 }; }
+  return out;
+}
+async function runSched(env) {
+  const now = Date.now();
+  const due = (await env.DB.prepare("SELECT * FROM sched WHERE status = 'wait' AND at <= ? ORDER BY at LIMIT 3").bind(now).all()).results || [];
+  for (const j of due) {
+    const lock = await env.DB.prepare("UPDATE sched SET status = 'sending' WHERE n = ? AND status = 'wait'").bind(j.n).run();
+    if (!lock.meta.changes) continue;
+    let res, ok = true;
+    try { res = await sendNow(env, JSON.parse(j.body)); ok = !Object.values(res).some(x => x.error); } catch (e) { res = { error: String(e && e.message || e) }; ok = false; }
+    await env.DB.prepare('UPDATE sched SET status = ?, result = ?, done = ? WHERE n = ?').bind(ok ? 'sent' : 'error', JSON.stringify(res), Date.now(), j.n).run();
+  }
+  // لو علِق شي على «sending» أكثر من ١٠ دقائق نرجّعه خطأ (ما نعيد الإرسال تلقائياً تجنباً للتكرار)
+  await env.DB.prepare("UPDATE sched SET status = 'error', result = '{\"error\":\"timeout\"}', done = ? WHERE status = 'sending' AND at < ?").bind(now, now - 10 * 6e4).run();
+}
+
+/* ---------- رسالة داخل التطبيق ---------- */
+function cleanCfgMsg(m) {
+  if (!m || !m.on) return null;
+  const t = Date.now(), tone = ['info', 'promo', 'warn'].includes(m.tone) ? m.tone : 'info';
+  return {
+    on: true, id: clipS(m.id, 24) || ('m' + t.toString(36)), tone, once: !!m.once,
+    ar: { title: clipS(m.ar && m.ar.title, 80), body: clipS(m.ar && m.ar.body, 400), btn: clipS(m.ar && m.ar.btn, 30) },
+    en: { title: clipS(m.en && m.en.title, 80), body: clipS(m.en && m.en.body, 400), btn: clipS(m.en && m.en.btn, 30) },
+    link: /^https:\/\/[^\s"<>]{3,300}$/.test(String(m.link || '')) ? String(m.link) : '',
+    from: +m.from || 0, until: +m.until || 0
+  };
+}
+async function getCfg(env) {
+  const rows = (await env.DB.prepare('SELECT app, v, updated FROM appcfg').all()).results || [];
+  const o = {}; rows.forEach(r => { try { o[r.app] = Object.assign(JSON.parse(r.v), { updated: r.updated }); } catch (e) {} });
+  return o;
+}
+
+/* ---------- قصص سِراج ---------- */
+const SCENES = ['home', 'night', 'space', 'school', 'park', 'garden', 'sea', 'desert', 'road', 'kitchen', 'market', 'souq', 'mosque', 'mountain', 'hills', 'fields', 'farm', 'rain', 'oldhome'];   // نفس مشاهد art.js في سِراج
+function cleanStory(d) {
+  d = d || {};
+  const pages = (Array.isArray(d.pages) ? d.pages : []).slice(0, 14).map(p => ({ t: clipS(p && p.t, 700), p: clipS(p && p.p, 8) || '✨', s: SCENES.includes(p && p.s) ? p.s : (SCENES.includes(d.scene) ? d.scene : 'home') })).filter(p => p.t);
+  const out = { title: clipS(d.title, 80), value: clipS(d.value, 40) || 'قيمة جميلة', scene: SCENES.includes(d.scene) ? d.scene : 'home', pages };
+  if (/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(String(d.date || ''))) out.date = String(d.date);
+  if (!out.title || pages.length < 2) return null;
+  return out;
+}
+
+async function publicRoute(url, env) {
+  const app = String(url.searchParams.get('app') || '');
+  const h = { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=120' };
+  Object.assign(h, CORS);
+  if (url.pathname === '/cfg') {
+    if (!ALL_APPS.includes(app)) return new Response('{}', { headers: h });
+    const c = await getCfg(env), now = Date.now();
+    const pick = m => m && m.on && (!m.from || m.from <= now) && (!m.until || m.until > now) ? { id: m.id, tone: m.tone, once: m.once, ar: m.ar, en: m.en, link: m.link } : null;
+    const msg = pick((c[app] || {}).msg) || pick((c.all || {}).msg);
+    return new Response(JSON.stringify({ app, msg }), { headers: h });
+  }
+  if (app !== 'siraj') return new Response('{"stories":[]}', { headers: h });
+  const rows = (await env.DB.prepare("SELECT id, data FROM stories WHERE app = 'siraj' AND active = 1 ORDER BY created").all()).results || [];
+  const stories = []; rows.forEach(r => { try { stories.push(Object.assign({ id: r.id }, JSON.parse(r.data))); } catch (e) {} });
+  return new Response(JSON.stringify({ stories }), { headers: h });
+}
+
+async function adminRoute(req, url, env) {
+  const p = url.pathname, now = Date.now();
+  let b = {};
+  if (req.method === 'POST') { const t = await req.text(); if (t.length > 64000) return json({ error: 'too large' }, 413); try { b = JSON.parse(t || '{}'); } catch (e) { return json({ error: 'bad json' }, 400); } }
+  if (p === '/admin/info') return json({ mail: !!env.MAIL, reportTo: !!env.REPORT_TO, siraj: !!env.SIRAJ, nabd: !!env.NABD, now });
+  // الإشعارات المجدولة
+  if (p === '/admin/sched' && req.method === 'GET') {
+    const list = (await env.DB.prepare("SELECT n, created, at, apps, body, status, result, done FROM sched ORDER BY CASE status WHEN 'wait' THEN 0 ELSE 1 END, CASE status WHEN 'wait' THEN at ELSE -at END LIMIT 60").all()).results || [];
+    return json({ items: list.map(r => Object.assign(r, { body: JSON.parse(r.body), result: r.result ? JSON.parse(r.result) : null })) });
+  }
+  if (p === '/admin/sched' && req.method === 'POST') {
+    const m = cleanMsg(b), at = +b.at;
+    if (!m.apps.length || !m.ar.title) return json({ error: 'missing' }, 400);
+    if (!(at > now - 6e4 && at < now + 400 * DAY)) return json({ error: 'bad-time' }, 400);
+    const r = await env.DB.prepare('INSERT INTO sched (created, at, apps, body) VALUES (?, ?, ?, ?)').bind(now, at, m.apps.join(','), JSON.stringify(m)).run();
+    return json({ ok: true, n: r.meta.last_row_id });
+  }
+  if (p === '/admin/sched/cancel') { await env.DB.prepare("UPDATE sched SET status = 'cancel', done = ? WHERE n = ? AND status = 'wait'").bind(now, +b.n).run(); return json({ ok: true }); }
+  // رسالة داخل التطبيق
+  if (p === '/admin/cfg' && req.method === 'GET') return json({ cfg: await getCfg(env) });
+  if (p === '/admin/cfg' && req.method === 'POST') {
+    const app = String(b.app || '');
+    if (app !== 'all' && !ALL_APPS.includes(app)) return json({ error: 'bad app' }, 400);
+    const v = { msg: cleanCfgMsg(b.msg) };
+    if (v.msg && !v.msg.ar.title && !v.msg.ar.body) return json({ error: 'missing' }, 400);
+    await env.DB.prepare('INSERT INTO appcfg (app, v, updated) VALUES (?, ?, ?) ON CONFLICT(app) DO UPDATE SET v = excluded.v, updated = excluded.updated').bind(app, JSON.stringify(v), now).run();
+    return json({ ok: true, msg: v.msg });
+  }
+  // قصص سِراج
+  if (p === '/admin/stories' && req.method === 'GET') {
+    const rows = (await env.DB.prepare("SELECT id, data, active, created, updated FROM stories WHERE app = 'siraj' ORDER BY created DESC").all()).results || [];
+    return json({ stories: rows.map(r => ({ id: r.id, active: !!r.active, created: r.created, updated: r.updated, data: JSON.parse(r.data) })) });
+  }
+  if (p === '/admin/stories' && req.method === 'POST') {
+    const d = cleanStory(b.data);
+    if (!d) return json({ error: 'story-invalid' }, 400);
+    const id = /^x[a-z0-9]{4,12}$/.test(String(b.id || '')) ? String(b.id) : 'x' + now.toString(36);
+    await env.DB.prepare("INSERT INTO stories (id, app, data, active, created, updated) VALUES (?, 'siraj', ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET data = excluded.data, active = excluded.active, updated = excluded.updated")
+      .bind(id, JSON.stringify(d), b.active === false ? 0 : 1, now, now).run();
+    return json({ ok: true, id });
+  }
+  if (p === '/admin/stories/delete') { await env.DB.prepare("DELETE FROM stories WHERE id = ? AND app = 'siraj'").bind(String(b.id || '')).run(); return json({ ok: true }); }
+  // التقرير الأسبوعي
+  if (p === '/admin/report' && req.method === 'GET') { const r = await buildReport(env); return json({ subject: r.subject, html: r.html }); }
+  if (p === '/admin/report/send') {
+    const r = await buildReport(env), err = await sendMail(env, r.subject, r.html);
+    await env.DB.prepare('INSERT INTO reports (week, created, subject, html, sent, err) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(week) DO UPDATE SET created = excluded.created, subject = excluded.subject, html = excluded.html, sent = MAX(sent, excluded.sent), err = excluded.err')
+      .bind('manual-' + ryDay(now), now, r.subject, r.html, err ? 0 : 1, err || null).run();
+    return json(err ? { error: err } : { ok: true });
+  }
+  if (p === '/admin/reports') {
+    const w = url.searchParams.get('week');
+    if (w) { const r = await env.DB.prepare('SELECT * FROM reports WHERE week = ?').bind(w).first(); return json(r || { error: 'not found' }, r ? 200 : 404); }
+    return json({ items: (await env.DB.prepare('SELECT week, created, subject, sent, err FROM reports ORDER BY created DESC LIMIT 30').all()).results || [] });
+  }
+  return json({ error: 'not found' }, 404);
+}
+
+/* ---------- التقرير الأسبوعي ---------- */
+async function maybeWeekly(env) {
+  if (env.REPORT_OFF === '1') return;
+  const now = Date.now(), ry = new Date(now + 3 * 36e5);
+  if (ry.getUTCDay() !== 0 || ry.getUTCHours() < 9) return;          // الأحد ٩ صباحاً فما بعد (الرياض)
+  const week = ryDay(now);
+  if (await env.DB.prepare('SELECT week FROM reports WHERE week = ?').bind(week).first()) return;
+  // نحجز الأسبوع أولاً حتى لا يتكرر الإرسال
+  await env.DB.prepare('INSERT INTO reports (week, created) VALUES (?, ?)').bind(week, now).run();
+  const r = await buildReport(env), err = await sendMail(env, r.subject, r.html);
+  await env.DB.prepare('UPDATE reports SET subject = ?, html = ?, sent = ?, err = ? WHERE week = ?').bind(r.subject, r.html, err ? 0 : 1, err || null, week).run();
+}
+async function buildReport(env) {
+  const now = Date.now(), d = n => ryDay(now - n * DAY), q = (sql, ...a) => env.DB.prepare(sql).bind(...a).all().then(r => r.results || []);
+  const by = (rows, k) => { const o = {}; rows.forEach(r => { o[r.app] = r[k] || 0; }); return o; };
+  const [cur, prev, fresh, tot, opens, pages, subs, msgs, sch, ver] = await Promise.all([
+    q('SELECT app, COUNT(DISTINCT dev) n FROM days WHERE day >= ? GROUP BY app', d(6)),
+    q('SELECT app, COUNT(DISTINCT dev) n FROM days WHERE day >= ? AND day <= ? GROUP BY app', d(13), d(7)),
+    q('SELECT app, COUNT(*) n FROM devices WHERE first >= ? GROUP BY app', now - 7 * DAY),
+    q('SELECT app, COUNT(*) n, SUM(inst) inst FROM devices GROUP BY app'),
+    q('SELECT app, SUM(opens) n FROM days WHERE day >= ? GROUP BY app', d(6)),
+    q('SELECT path, SUM(n) n FROM pages WHERE day >= ? GROUP BY path ORDER BY n DESC LIMIT 5', d(6)),
+    q('SELECT app, COUNT(*) n FROM subs GROUP BY app'),
+    q('SELECT created, apps, body, total FROM messages WHERE created >= ? ORDER BY created DESC', now - 7 * DAY),
+    q("SELECT at, apps, body FROM sched WHERE status = 'wait' ORDER BY at LIMIT 5"),
+    q("SELECT app, ver, COUNT(*) n FROM devices WHERE ver <> '' AND last >= ? GROUP BY app, ver ORDER BY n DESC", now - 30 * DAY)
+  ]);
+  const [sj, nb] = await Promise.all([callSvc(env, 'siraj', '/stats'), callSvc(env, 'nabd', '/stats')]);
+  const C = by(cur, 'n'), P = by(prev, 'n'), F = by(fresh, 'n'), T = by(tot, 'n'), I = by(tot, 'inst'), O = by(opens, 'n'), SB = by(subs, 'n');
+  if (!sj.error) SB.siraj = sj.subs || 0;
+  if (!nb.error) SB.nabd = nb.subs || 0;
+  const fmtN = n => Number(n || 0).toLocaleString('en-US');
+  const dl = (c, p) => !p ? (c ? '<span style="color:#1F9D6B">جديد</span>' : '—') : (() => { const x = Math.round((c - p) / p * 100); return '<span style="color:' + (x >= 0 ? '#1F9D6B' : '#D64545') + '">' + (x >= 0 ? '▲' : '▼') + ' ' + Math.abs(x) + '%</span>'; })();
+  const sumAll = o => ['site'].concat(ALL_APPS).reduce((n, a) => n + (o[a] || 0), 0);
+  const fromD = new Date(now - 6 * DAY + 3 * 36e5), toD = new Date(now + 3 * 36e5);
+  const dfmt = x => x.getUTCDate() + ' ' + ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'][x.getUTCMonth()];
+  const subject = 'تقرير ومض آرك الأسبوعي — ' + dfmt(fromD) + ' إلى ' + dfmt(toD);
+  const td = 'padding:10px 8px;border-bottom:1px solid #ECE9F6;text-align:center;font-size:14px';
+  const rows = ['site'].concat(ALL_APPS).map(a => '<tr><td style="' + td + ';text-align:right;font-weight:600">' + APP_AR[a] + '</td><td style="' + td + '">' + fmtN(C[a]) + '<br><small>' + dl(C[a] || 0, P[a] || 0) + '</small></td><td style="' + td + '">' + fmtN(F[a]) + '</td><td style="' + td + '">' + fmtN(O[a]) + '</td><td style="' + td + '">' + (a === 'site' ? '—' : fmtN(I[a])) + '</td><td style="' + td + '">' + (a === 'site' ? '—' : fmtN(SB[a])) + '</td></tr>').join('');
+  const card = (v, l, sub) => '<td style="width:25%;padding:6px"><div style="background:#F4F2FB;border-radius:14px;padding:14px 10px;text-align:center"><div style="font-size:26px;font-weight:700;color:#1A1247">' + v + '</div><div style="font-size:12px;color:#6B6590">' + l + '</div>' + (sub ? '<div style="font-size:12px;margin-top:2px">' + sub + '</div>' : '') + '</div></td>';
+  const fam = (!nb.error ? (nb.families || 0) : 0) + (!sj.error ? (sj.families || 0) : 0);
+  const verLine = ALL_APPS.map(a => { const v = ver.filter(r => r.app === a); return v.length ? APP_AR[a] + ' v' + v[0].ver : ''; }).filter(Boolean).join(' · ');
+  const msgList = msgs.map(m => { let t = ''; try { t = JSON.parse(m.body).ar.title; } catch (e) {} return '<li>' + esc(t) + ' — ' + m.apps.split(',').map(x => APP_AR[x] || x).join('، ') + ' (' + fmtN(m.total) + ')</li>'; }).join('');
+  const schList = sch.map(m => { let t = ''; try { t = JSON.parse(m.body).ar.title; } catch (e) {} return '<li>' + new Date(m.at + 3 * 36e5).toISOString().slice(0, 16).replace('T', ' ') + ' — ' + esc(t) + '</li>'; }).join('');
+  const pageList = pages.map(r => '<li>' + esc(r.path === '/' ? 'الرئيسية' : r.path) + ' — ' + fmtN(r.n) + '</li>').join('');
+  const html = '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head><body style="margin:0;background:#EEEAF8;font-family:Tahoma,Arial,sans-serif;color:#1A1247">' +
+    '<div style="max-width:640px;margin:0 auto;padding:20px 12px">' +
+    '<div style="background:linear-gradient(120deg,#5A2CD8,#9B52D8 55%,#FF8A2A);border-radius:22px;padding:26px 22px;color:#fff"><div style="font-size:13px;opacity:.85;letter-spacing:2px">WAMD ARC · ومض آرك</div><div style="font-size:24px;font-weight:700;margin-top:6px">التقرير الأسبوعي</div><div style="font-size:14px;opacity:.9;margin-top:4px">' + dfmt(fromD) + ' — ' + dfmt(toD) + '</div></div>' +
+    '<table role="presentation" style="width:100%;margin-top:12px;border-collapse:collapse"><tr>' +
+    card(fmtN(sumAll(C)), 'نشط هالأسبوع', dl(sumAll(C), sumAll(P))) + card(fmtN(sumAll(F)), 'جهاز جديد') + card(fmtN(ALL_APPS.reduce((n, a) => n + (I[a] || 0), 0)), 'مثبّت على الشاشة') + card(fmtN(ALL_APPS.reduce((n, a) => n + (SB[a] || 0), 0)), 'مشترك بالإشعارات') +
+    '</tr></table>' +
+    '<div style="background:#fff;border-radius:18px;padding:16px;margin-top:12px"><div style="font-weight:700;margin-bottom:8px">كل تطبيق</div><table style="width:100%;border-collapse:collapse"><tr style="color:#6B6590;font-size:12px"><th style="text-align:right;padding:6px">التطبيق</th><th>نشط</th><th>جديد</th><th>مرات الفتح</th><th>مثبّت</th><th>🔔</th></tr>' + rows + '</table></div>' +
+    '<div style="background:#fff;border-radius:18px;padding:16px;margin-top:12px;font-size:14px;line-height:1.9">' +
+    (fam ? '<div>👨‍👩‍👧 العائلات: <b>' + fmtN(fam) + '</b>' + (!nb.error ? ' — نَبْض ' + fmtN(nb.families) + (nb.activeFamiliesWeek != null ? ' (' + fmtN(nb.activeFamiliesWeek) + ' نشطة)' : '') : '') + (!sj.error ? ' — سِراج ' + fmtN(sj.families) : '') + '</div>' : '') +
+    (verLine ? '<div>🔄 أكثر إصدار مستخدم: ' + esc(verLine) + '</div>' : '') +
+    '<div style="margin-top:8px;font-weight:700">🔔 الإشعارات المرسلة هالأسبوع</div>' + (msgList ? '<ul style="margin:4px 0;padding-right:18px">' + msgList + '</ul>' : '<div style="color:#6B6590">ما فيه رسائل عامة (فلق وسهم وخطى).</div>') +
+    (schList ? '<div style="margin-top:8px;font-weight:700">⏰ مجدولة قادمة</div><ul style="margin:4px 0;padding-right:18px">' + schList + '</ul>' : '') +
+    (pageList ? '<div style="margin-top:8px;font-weight:700">🌐 أكثر صفحات الموقع زيارة</div><ul style="margin:4px 0;padding-right:18px">' + pageList + '</ul>' : '') +
+    ((sj.error || nb.error) ? '<div style="margin-top:8px;color:#D64545">⚠️ تعذّر جلب بيانات ' + [sj.error ? 'سِراج' : '', nb.error ? 'نَبْض' : ''].filter(Boolean).join(' و') + '.</div>' : '') +
+    '</div>' +
+    '<div style="text-align:center;margin:18px 0 6px"><a href="https://admin.wamdarc.com" style="display:inline-block;background:#1A1247;color:#fff;text-decoration:none;border-radius:999px;padding:12px 26px;font-weight:700">افتح لوحة الإدارة</a></div>' +
+    '<div style="text-align:center;font-size:11px;color:#8C87A6;margin-top:10px">يوصلك هذا التقرير كل أحد الساعة ٩ صباحاً من push-wamdarc. لإيقافه أضف المتغير REPORT_OFF = 1.</div>' +
+    '</div></body></html>';
+  return { subject, html };
+}
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function b64utf8(str) { const b = new TextEncoder().encode(str); let s = ''; for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(s); }
+async function sendMail(env, subject, html) {
+  if (!env.MAIL) return 'no-mail-binding';
+  if (!env.REPORT_TO) return 'no-report-to';
+  const from = env.REPORT_FROM || 'report@wamdarc.com', to = env.REPORT_TO;
+  const body = b64utf8(html).replace(/.{76}/g, '$&\r\n');
+  const raw = ['From: "WAMD ARC" <' + from + '>', 'To: <' + to + '>', 'Subject: =?UTF-8?B?' + b64utf8(subject) + '?=', 'Date: ' + new Date().toUTCString(),
+    'Message-ID: <' + crypto.randomUUID() + '@wamdarc.com>', 'MIME-Version: 1.0', 'Content-Type: text/html; charset=UTF-8', 'Content-Transfer-Encoding: base64', '', body].join('\r\n');
+  try {
+    await env.MAIL.send(new EmailMessage(from, to, raw));
+    return null;
+  } catch (e) { return String(e && e.message || e).slice(0, 200); }
 }
 
 /* ---------- حماية مفتاح الإدارة من التخمين ----------

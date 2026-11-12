@@ -166,6 +166,28 @@ em.up{color:var(--ok)} em.down{color:var(--bad)}
 
 @media (max-width:420px){.pick{grid-template-columns:repeat(2,1fr)}}
 
+
+/* إدارة التطبيقات */
+select{font:inherit;font-size:15px;color:var(--text);background:rgba(14,10,43,.55);border:1px solid var(--line);border-radius:12px;padding:10px 12px;width:100%}
+input[type=datetime-local]{width:100%;font:inherit;font-size:15px;color:var(--text);background:rgba(14,10,43,.55);border:1px solid var(--line);border-radius:14px;padding:11px 12px;color-scheme:dark}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cfprev{margin-top:16px}
+.cfprev .pv{position:relative;color:#fff;border-radius:20px;padding:14px 16px;box-shadow:0 18px 50px rgba(10,6,40,.45);margin-bottom:6px}
+.cfprev .pv b{display:block;font-size:16px;padding-inline-end:34px}.cfprev .pv p{margin:2px 0 0;opacity:.92;white-space:pre-line}
+.cfprev .pv .x{position:absolute;top:8px;inset-inline-end:8px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-items:center}
+.cfprev .pv .btn{display:inline-block;margin-top:10px;background:#fff;color:#1A1247;font-weight:700;border-radius:999px;padding:6px 16px;font-size:14px}
+.sted{margin-top:14px;border-top:1px solid var(--line);padding-top:14px}
+.sted h3{margin:0 0 4px;font-size:17px}
+.stpg{background:rgba(14,10,43,.4);border:1px solid var(--line);border-radius:14px;padding:10px;margin-top:8px}
+.stpg .pe{width:64px;flex:none;text-align:center;font-size:20px;padding:8px}
+.stpg select{flex:1}
+.stpg textarea{margin-top:8px;min-height:70px}
+.stprev{margin-top:14px;background:rgba(255,255,255,.04);border-radius:14px;padding:12px 14px;font-size:14px}
+.stprev:empty{display:none}
+.stprev h4{margin:6px 0;font-size:17px}.stprev p{margin:6px 0;color:var(--soft,#C6C0E2)}
+.repview{margin-top:14px;border-radius:18px;overflow:hidden;background:#EEEAF8;color:#1A1247}
+.hist li .ghost{flex:none}
+@media (max-width:560px){.row2{grid-template-columns:1fr}}
 /* ===== هوية ومض آرك (v6) ===== */
 :root{--bg:#0E0A2B;--card:#1A1247;--card2:#241A5A;--line:rgba(154,114,255,.16);--text:#F3F1FB;--muted:#9A94BC;--accent:#FF8A2A;--violet:#7B4BF0;--ok:#4CD39A;--bad:#FF6B6B;--warn:#FFB15C;--grad:linear-gradient(120deg,#5A2CD8 0%,#9B52D8 48%,#FF8A2A 100%)}
 body{font-family:'Readex Pro',-apple-system,'SF Arabic',system-ui,sans-serif;background:var(--bg);background-image:radial-gradient(1000px 520px at 85% -10%,rgba(123,75,240,.28),transparent 60%),radial-gradient(800px 480px at -10% 110%,rgba(255,138,42,.10),transparent 60%);background-attachment:fixed;min-height:100vh}
@@ -285,7 +307,7 @@ main{padding-top:0}
   </section>
 
   <div id="panel" hidden>
-    <nav class="tabs" role="tablist"><button class="on" data-tab="home" role="tab">🏠 نظرة عامة</button><button data-tab="apps" role="tab">📱 التطبيقات</button><button data-tab="stats" role="tab">📊 الإحصائيات</button><button data-tab="notif" role="tab">🔔 الإشعارات</button><button data-tab="logs" role="tab">🗂️ السجلات</button></nav>
+    <nav class="tabs" role="tablist"><button class="on" data-tab="home" role="tab">🏠 نظرة عامة</button><button data-tab="apps" role="tab">📱 التطبيقات</button><button data-tab="manage" role="tab">🛠️ إدارة التطبيقات</button><button data-tab="stats" role="tab">📊 الإحصائيات</button><button data-tab="notif" role="tab">🔔 الإشعارات</button><button data-tab="logs" role="tab">🗂️ السجلات</button></nav>
     <div id="bkNag" class="setup" hidden style="margin-top:14px;cursor:pointer"></div>
 
     <div id="v-home">
@@ -316,6 +338,70 @@ main{padding-top:0}
     <div id="v-apps" hidden>
       <p class="note" style="margin:14px 2px 0">كل تطبيق: الإصدار المنشور الآن، كم من المستخدمين عليه، آخر تحديث، ورمز QR وروابط المشاركة.</p>
       <div class="mapps" id="mapps"></div>
+    </div>
+
+    <div id="v-manage" class="narrow" hidden>
+      <div class="chips" id="mgApps" style="margin:16px 0 4px"></div>
+      <section>
+        <h2>📣 رسالة داخل التطبيق<span class="sp"></span><span class="tiny" id="cfgState"></span></h2>
+        <p class="note" style="margin-top:0">تظهر كبطاقة صغيرة أسفل الشاشة أول ما يفتح المستخدم التطبيق (مثلاً: ميزة جديدة، تهنئة، تنبيه صيانة). تختفي لما يقفلها، وما ترجع له مرة ثانية.</p>
+        <label class="rem" style="margin-top:12px"><input type="checkbox" id="cfOn"> مفعّلة</label>
+        <label>النوع</label>
+        <div class="seg" id="cfTone"><button data-t="info" class="on">إعلان</button><button data-t="promo">ميزة جديدة ✨</button><button data-t="warn">تنبيه ⚠️</button></div>
+        <label for="cfT">العنوان</label><input type="text" id="cfT" maxlength="80" placeholder="مثلاً: جديد في فلق 🌙">
+        <label for="cfB">النص</label><textarea id="cfB" maxlength="400" placeholder="سطر أو سطرين يوضحون الفكرة"></textarea>
+        <label for="cfL">رابط (اختياري)</label><input type="text" id="cfL" dir="ltr" placeholder="https://wamdarc.com/updates/">
+        <label for="cfBtn">نص الزر</label><input type="text" id="cfBtn" maxlength="30" placeholder="اعرف أكثر">
+        <details><summary>نص إنجليزي (اختياري)</summary>
+          <label for="cfTe">Title</label><input type="text" id="cfTe" maxlength="80" dir="ltr">
+          <label for="cfBe">Message</label><textarea id="cfBe" maxlength="400" dir="ltr"></textarea>
+          <label for="cfBtnE">Button</label><input type="text" id="cfBtnE" maxlength="30" dir="ltr">
+        </details>
+        <div class="row2">
+          <div><label for="cfFrom">تبدأ من (اختياري)</label><input type="datetime-local" id="cfFrom" dir="ltr"></div>
+          <div><label for="cfUntil">تنتهي في (اختياري)</label><input type="datetime-local" id="cfUntil" dir="ltr"></div>
+        </div>
+        <label class="rem" style="margin-top:12px"><input type="checkbox" id="cfNew"> اعرضها من جديد حتى لمن قفلها قبل (تُعامل كرسالة جديدة)</label>
+        <div class="cfprev" id="cfPrev"></div>
+        <div class="row" style="margin-top:14px;flex-wrap:wrap"><button class="primary" id="cfSave" style="margin:0;width:auto;padding:12px 26px">حفظ ونشر</button><button id="cfOff">إيقاف الرسالة</button></div>
+        <div class="msg" id="cfMsg"></div>
+      </section>
+
+      <section id="storiesBox" hidden>
+        <h2>📚 قصص سِراج من اللوحة<span class="sp"></span><button class="ghost" id="stNew">+ قصة جديدة</button></h2>
+        <p class="note" style="margin-top:0">القصص اللي تضيفها هنا تنضاف لمكتبة سِراج عند كل العائلات، وتدخل في دور «قصة الليلة». ولو حددت تاريخ، تصير قصة ذاك اليوم للجميع.</p>
+        <ul class="hist" id="stList"></ul>
+        <div id="stEd" hidden class="sted">
+          <h3 id="stEdT">قصة جديدة</h3>
+          <label for="stTitle">عنوان القصة</label><input type="text" id="stTitle" maxlength="80" placeholder="مثلاً: {n} والقمر الصغير">
+          <div class="row2">
+            <div><label for="stValue">القيمة / الهدف</label><input type="text" id="stValue" maxlength="40" placeholder="الصدق، التعاون، الصبر…"></div>
+            <div><label for="stScene">المشهد الرئيسي</label><select id="stScene"></select></div>
+          </div>
+          <label for="stDate">تاريخ عرضها كقصة الليلة (اختياري، كل سنة)</label>
+          <div class="row" style="gap:8px"><select id="stM"></select><select id="stD"></select></div>
+          <label>الصفحات</label>
+          <div id="stPages"></div>
+          <button id="stAddPage" style="margin-top:8px">+ صفحة</button>
+          <details><summary>رموز الأسماء (اضغط للشرح)</summary>
+            <p class="note"><b dir="ltr">{n}</b> اسم الطفل البطل · <b dir="ltr">{جلس|جلست}</b> الأولى للولد والثانية للبنت · <b dir="ltr">{dad}</b> و <b dir="ltr">{mom}</b> كيف ينادي الأطفال أباهم وأمهم · <b dir="ltr">[[ ... ]]</b> يظهر فقط لو فيه إخوان مشاركين، و <b dir="ltr">{fr}</b> أسماؤهم.</p>
+          </details>
+          <label class="rem" style="margin-top:10px"><input type="checkbox" id="stActive" checked> منشورة (تظهر للعائلات)</label>
+          <div class="stprev" id="stPrev"></div>
+          <div class="row" style="margin-top:12px;flex-wrap:wrap"><button class="primary" id="stSave" style="margin:0;width:auto;padding:12px 26px">حفظ القصة</button><button id="stCancel">إلغاء</button></div>
+          <div class="msg" id="stMsg"></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>📧 التقرير الأسبوعي<span class="sp"></span><span class="tiny" id="repState"></span></h2>
+        <p class="note" style="margin-top:0">يوصلك كل أحد الساعة ٩ صباحاً: النشطين والجدد والمثبتين والمشتركين لكل تطبيق، العائلات، والإشعارات المرسلة والمجدولة.</p>
+        <div id="repSetup" class="setup" hidden style="margin-top:10px"></div>
+        <div class="row" style="margin-top:12px;flex-wrap:wrap"><button id="repPrev">👁️ معاينة تقرير هذا الأسبوع</button><button id="repSend">📨 أرسله لي الآن</button></div>
+        <div class="msg" id="repMsg"></div>
+        <div id="repView" class="repview" hidden></div>
+        <ul class="hist" id="repList" style="margin-top:10px"></ul>
+      </section>
     </div>
 
     <div id="v-stats" hidden>
@@ -399,9 +485,20 @@ main{padding-top:0}
         <label for="enB">Message</label><textarea id="enB" maxlength="300" dir="ltr"></textarea>
       </details>
       <div class="preview" aria-hidden="true"><div class="ic" id="pvI"></div><div><div class="t" id="pvT">العنوان</div><div class="f" id="pvF">from فَلَق</div><div class="b" id="pvB">النص</div></div></div>
+      <label>وقت الإرسال</label>
+      <div class="seg" id="when"><button data-w="now" class="on">الآن</button><button data-w="later">جدولة لوقت لاحق ⏰</button></div>
+      <div id="whenBox" hidden style="margin-top:10px">
+        <input type="datetime-local" id="whenAt" dir="ltr">
+        <p class="note" style="margin-top:6px">بتوقيت جهازك. ينرسل تلقائياً في الوقت المحدد حتى لو كانت اللوحة مقفلة.</p>
+      </div>
       <button class="primary" id="send">إرسال</button>
       <div class="msg" id="sendMsg"></div>
       <p class="note">تصل الرسالة لكل من فعّل الإشعارات في التطبيقات المختارة. لا ترسل كثيراً، فكثرة الرسائل تجعل الناس يقفلون الإشعارات.</p>
+    </section>
+
+    <section>
+      <h2>⏰ الإشعارات المجدولة<span class="sp"></span><button class="ghost" id="schedRefresh">تحديث ↻</button></h2>
+      <ul class="hist" id="schedList"><li><span class="note">نحمّل…</span></li></ul>
     </section>
 
     <section>
@@ -687,7 +784,9 @@ main{padding-top:0}
   var statsTimer = null;
   function showTab(t) {
     document.querySelectorAll('.tabs button').forEach(function (b) { b.classList.toggle('on', b.dataset.tab === t); });
-    ['home', 'apps', 'stats', 'notif', 'logs'].forEach(function (v) { $('#v-' + v).hidden = t !== v; });
+    ['home', 'apps', 'manage', 'stats', 'notif', 'logs'].forEach(function (v) { $('#v-' + v).hidden = t !== v; });
+    if (t === 'manage') openManage();
+    if (t === 'notif') loadSched();
     if (t === 'apps') drawApps();
     window.scrollTo(0, 0);
     if (t === 'logs' && !LOG.loaded && !$('#panel').hidden) loadLog(true);
@@ -741,7 +840,7 @@ main{padding-top:0}
     }, function (e) { show($('#bkMsg'), 'bad', errText(e)); }).then(function () { btn.disabled = false; });
   };
   bkInfo();
-  try { var lt = localStorage.getItem('wamd-admin-tab'); if (['home', 'apps', 'stats', 'notif', 'logs'].indexOf(lt) >= 0) showTab(lt); } catch (e) {}
+  try { var lt = localStorage.getItem('wamd-admin-tab'); if (['home', 'apps', 'manage', 'stats', 'notif', 'logs'].indexOf(lt) >= 0) showTab(lt); } catch (e) {}
   setInterval(function () { if (!$('#panel').hidden && (!$('#v-stats').hidden || !$('#v-home').hidden) && document.visibilityState === 'visible') loadStats(); }, 30000);
 
   /* ---------- نظرة عامة + التطبيقات ---------- */
@@ -855,6 +954,180 @@ main{padding-top:0}
   $('#homeRefresh').onclick = function () { load().catch(function () {}); };
   setInterval(function () { if (!$('#panel').hidden && document.visibilityState === 'visible') checkHealth(); }, 5 * 60e3);
 
+  /* ---------- الجدولة ---------- */
+  var WHEN = 'now';
+  document.querySelectorAll('#when button').forEach(function (b) { b.onclick = function () {
+    WHEN = b.dataset.w; document.querySelectorAll('#when button').forEach(function (x) { x.classList.toggle('on', x === b); });
+    $('#whenBox').hidden = WHEN !== 'later'; $('#send').textContent = WHEN === 'later' ? 'جدولة الإشعار ⏰' : 'إرسال';
+    if (WHEN === 'later' && !$('#whenAt').value) { var d = new Date(Date.now() + 864e5); d.setHours(9, 0, 0, 0); $('#whenAt').value = localInput(d.getTime()); }
+  }; });
+  function localInput(t) { var d = new Date(t - new Date(t).getTimezoneOffset() * 6e4); return d.toISOString().slice(0, 16); }
+  function fromInput(v) { return v ? new Date(v).getTime() : 0; }
+  var dt = function (t) { return new Date(t).toLocaleString('ar-SA-u-ca-gregory-nu-latn', { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }); };
+  function loadSched() {
+    api(PUSH, '/admin/sched').then(function (j) {
+      var ST_ = { wait: ['⏰', 'بانتظار الإرسال', ''], sending: ['⏳', 'يُرسل الآن', ''], sent: ['✓', 'أُرسل', 'ok'], error: ['⚠️', 'تعذّر', 'bad'], cancel: ['✕', 'أُلغي', ''] };
+      $('#schedList').innerHTML = (j.items || []).slice(0, 20).map(function (m) {
+        var st = ST_[m.status] || ['', m.status, ''], c = (BY[m.body.apps[0]] || {}).color || '#888';
+        var res = m.result ? Object.keys(m.result).map(function (k) { var r = m.result[k]; return (k === 'push' ? 'فلق/سهم/خطى' : (BY[k] || {}).name || k) + ': ' + (r.error ? '✗ ' + r.error : (r.queued != null ? r.queued : r.sent) + ' مستلم'); }).join(' · ') : '';
+        return '<li><span class="dot" style="background:' + c + '"></span><div style="flex:1;min-width:0"><b>' + esc(m.body.ar.title) + '</b><span>' + st[0] + ' ' + st[1] + ' · ' + dt(m.at) + ' · ' + m.body.apps.map(function (a) { return (BY[a] || {}).name || a; }).join('، ') + (res ? '<br>' + esc(res) : '') + '</span></div>' +
+          (m.status === 'wait' ? '<button class="ghost" data-cancel="' + m.n + '">إلغاء</button>' : '') + '</li>';
+      }).join('') || '<li><span class="note">ما فيه إشعارات مجدولة. اختر «جدولة لوقت لاحق» فوق.</span></li>';
+      $('#schedList').querySelectorAll('[data-cancel]').forEach(function (b) { b.onclick = function () {
+        if (!confirm('إلغاء هذا الإشعار المجدول؟')) return;
+        api(PUSH, '/admin/sched/cancel', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ n: +b.dataset.cancel }) }).then(loadSched, function (e) { alert(errText(e)); });
+      }; });
+    }, function (e) { $('#schedList').innerHTML = '<li><span class="note">' + esc(errText(e)) + (e && e.status === 404 ? ' — الخادم ما تحدّث بعد، انتظر دقيقتين.' : '') + '</span></li>'; });
+  }
+  $('#schedRefresh').onclick = loadSched;
+
+  /* ---------- إدارة التطبيقات ---------- */
+  var MG = { app: 'all', cfg: {}, tone: 'info', loaded: false, stories: [], edit: null };
+  try { MG.app = localStorage.getItem('wamd-admin-mg') || 'all'; } catch (e) {}
+  var SCN = [['home', 'البيت'], ['night', 'الليل'], ['space', 'الفضاء'], ['school', 'المدرسة'], ['park', 'الحديقة العامة'], ['garden', 'حديقة البيت'], ['sea', 'البحر'], ['desert', 'البر'], ['road', 'الطريق'], ['kitchen', 'المطبخ'], ['market', 'السوق'], ['souq', 'السوق القديم'], ['mosque', 'المسجد'], ['mountain', 'الجبل'], ['hills', 'التلال'], ['fields', 'المزارع'], ['farm', 'المزرعة'], ['rain', 'المطر'], ['oldhome', 'بيت الجد']];
+  var MON = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+  $('#stScene').innerHTML = SCN.map(function (x) { return '<option value="' + x[0] + '">' + x[1] + '</option>'; }).join('');
+  $('#stM').innerHTML = '<option value="">بدون تاريخ</option>' + MON.map(function (m, i) { return '<option value="' + ('0' + (i + 1)).slice(-2) + '">' + m + '</option>'; }).join('');
+  $('#stD').innerHTML = '<option value="">اليوم</option>' + Array.from({ length: 31 }, function (_, i) { var d = ('0' + (i + 1)).slice(-2); return '<option value="' + d + '">' + (i + 1) + '</option>'; }).join('');
+  function openManage() {
+    drawMgApps();
+    if (!MG.loaded) {
+      api(PUSH, '/admin/cfg').then(function (j) { MG.cfg = j.cfg || {}; MG.loaded = true; fillCfg(); }, function (e) { show($('#cfMsg'), 'bad', errText(e) + (e && e.status === 404 ? ' — الخادم ما تحدّث بعد، انتظر دقيقتين وحدّث الصفحة.' : '')); });
+      loadReportInfo();
+    } else fillCfg();
+    $('#storiesBox').hidden = MG.app !== 'siraj';
+    if (MG.app === 'siraj') loadStories();
+  }
+  function drawMgApps() {
+    $('#mgApps').innerHTML = '<button data-a="all" class="' + (MG.app === 'all' ? 'on' : '') + '">كل التطبيقات</button>' + APPS.map(function (a) { return '<button data-a="' + a.id + '" class="' + (MG.app === a.id ? 'on' : '') + '"><i style="background:' + a.color + '"></i>' + a.name + '</button>'; }).join('');
+    $('#mgApps').querySelectorAll('button').forEach(function (b) { b.onclick = function () { MG.app = b.dataset.a; try { localStorage.setItem('wamd-admin-mg', MG.app); } catch (e) {} openManage(); }; });
+  }
+  function setTone(t) { MG.tone = t; document.querySelectorAll('#cfTone button').forEach(function (b) { b.classList.toggle('on', b.dataset.t === t); }); cfPreview(); }
+  document.querySelectorAll('#cfTone button').forEach(function (b) { b.onclick = function () { setTone(b.dataset.t); }; });
+  function fillCfg() {
+    var m = (MG.cfg[MG.app] || {}).msg || null, on = !!(m && m.on);
+    $('#cfOn').checked = on || !m;
+    $('#cfT').value = m ? m.ar.title : ''; $('#cfB').value = m ? m.ar.body : ''; $('#cfBtn').value = m ? m.ar.btn : '';
+    $('#cfTe').value = m ? m.en.title : ''; $('#cfBe').value = m ? m.en.body : ''; $('#cfBtnE').value = m ? m.en.btn : '';
+    $('#cfL').value = m ? m.link : ''; $('#cfFrom').value = m && m.from ? localInput(m.from) : ''; $('#cfUntil').value = m && m.until ? localInput(m.until) : '';
+    $('#cfNew').checked = false; setTone(m ? m.tone : 'info');
+    var nm = MG.app === 'all' ? 'كل التطبيقات' : BY[MG.app].name, now = Date.now();
+    var live = m && on && (!m.from || m.from <= now) && (!m.until || m.until > now);
+    $('#cfgState').innerHTML = m && on ? (live ? '<span style="color:var(--ok)">● ظاهرة الآن في ' + nm + '</span>' : '⏰ مجدولة/منتهية') : 'ما فيه رسالة في ' + nm;
+    if (MG.app === 'all') $('#cfgState').innerHTML += ' <span class="tiny">(تظهر في أي تطبيق ما له رسالة خاصة)</span>';
+    $('#cfMsg').className = 'msg';
+  }
+  function cfPreview() {
+    var bg = MG.tone === 'promo' ? 'linear-gradient(120deg,#5A2CD8,#9B52D8 55%,#FF8A2A)' : MG.tone === 'warn' ? 'linear-gradient(120deg,#B4581A,#E08A2E)' : 'linear-gradient(120deg,#2A1B6E,#4B23C8)';
+    var t = $('#cfT').value.trim(), b = $('#cfB').value.trim(), l = $('#cfL').value.trim();
+    $('#cfPrev').innerHTML = (t || b) ? '<div class="pv" style="background:' + bg + '"><span class="x">×</span>' + (t ? '<b>' + esc(t) + '</b>' : '') + (b ? '<p>' + esc(b) + '</p>' : '') + (l ? '<span class="btn">' + esc($('#cfBtn').value.trim() || 'افتح') + '</span>' : '') + '</div><span class="tiny">معاينة — هكذا تظهر أسفل شاشة التطبيق</span>' : '';
+  }
+  ['#cfT', '#cfB', '#cfL', '#cfBtn'].forEach(function (s) { $(s).oninput = cfPreview; });
+  function saveCfg(msg) {
+    var btn = $('#cfSave'); btn.disabled = true;
+    api(PUSH, '/admin/cfg', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ app: MG.app, msg: msg }) }).then(function (j) {
+      MG.cfg[MG.app] = { msg: j.msg, updated: Date.now() }; fillCfg();
+      show($('#cfMsg'), 'ok', msg ? '✓ انحفظت. تظهر للمستخدمين أول ما يفتحون التطبيق (خلال دقيقتين تقريباً).' : '✓ أوقفت الرسالة.');
+    }, function (e) { show($('#cfMsg'), 'bad', errText(e)); }).then(function () { btn.disabled = false; });
+  }
+  $('#cfSave').onclick = function () {
+    var old = (MG.cfg[MG.app] || {}).msg, t = $('#cfT').value.trim(), b = $('#cfB').value.trim(), l = $('#cfL').value.trim();
+    if (!t && !b) return show($('#cfMsg'), 'bad', 'اكتب عنوان أو نص.');
+    if (l && !/^https:\/\//.test(l)) return show($('#cfMsg'), 'bad', 'الرابط لازم يبدأ بـ https://');
+    saveCfg({ on: $('#cfOn').checked, id: old && !$('#cfNew').checked && old.ar.title === t && old.ar.body === b ? old.id : '', tone: MG.tone, link: l,
+      ar: { title: t, body: b, btn: $('#cfBtn').value.trim() }, en: { title: $('#cfTe').value.trim(), body: $('#cfBe').value.trim(), btn: $('#cfBtnE').value.trim() },
+      from: fromInput($('#cfFrom').value), until: fromInput($('#cfUntil').value) });
+  };
+  $('#cfOff').onclick = function () { if (confirm('إيقاف الرسالة في ' + (MG.app === 'all' ? 'كل التطبيقات' : BY[MG.app].name) + '؟')) saveCfg(null); };
+
+  /* قصص سِراج */
+  function loadStories() {
+    api(PUSH, '/admin/stories').then(function (j) { MG.stories = j.stories || []; drawStories(); }, function (e) { $('#stList').innerHTML = '<li><span class="note">' + esc(errText(e)) + '</span></li>'; });
+  }
+  function drawStories() {
+    $('#stList').innerHTML = MG.stories.map(function (s) {
+      var d = s.data, date = d.date ? ' · 📅 ' + (+d.date.slice(3)) + ' ' + MON[+d.date.slice(0, 2) - 1] : '';
+      return '<li><span class="dot" style="background:' + (s.active ? 'var(--ok)' : 'var(--muted)') + '"></span><div style="flex:1;min-width:0"><b>' + esc(d.title.replace(/\{n\}/g, 'يارا')) + '</b><span>' + esc(d.value) + ' · ' + d.pages.length + ' صفحات' + date + ' · ' + (s.active ? 'منشورة' : 'مخفية') + '</span></div>' +
+        '<button class="ghost" data-ed="' + s.id + '">تعديل</button><button class="ghost" data-del="' + s.id + '">حذف</button></li>';
+    }).join('') || '<li><span class="note">ما أضفت قصص بعد. اضغط «+ قصة جديدة».</span></li>';
+    $('#stList').querySelectorAll('[data-ed]').forEach(function (b) { b.onclick = function () { editStory(MG.stories.filter(function (s) { return s.id === b.dataset.ed; })[0]); }; });
+    $('#stList').querySelectorAll('[data-del]').forEach(function (b) { b.onclick = function () {
+      if (!confirm('حذف هذه القصة من سِراج عند كل العائلات؟')) return;
+      api(PUSH, '/admin/stories/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: b.dataset.del }) }).then(loadStories, function (e) { alert(errText(e)); });
+    }; });
+  }
+  function pageRow(p) {
+    var div = document.createElement('div'); div.className = 'stpg';
+    div.innerHTML = '<div class="row" style="gap:6px"><input type="text" class="pe" maxlength="8" value="' + esc(p.p || '✨') + '" aria-label="رمز الصفحة"><select class="ps">' + SCN.map(function (x) { return '<option value="' + x[0] + '"' + (x[0] === (p.s || $('#stScene').value) ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select><button class="ghost pd" title="حذف الصفحة">✕</button></div>' +
+      '<textarea class="pt" maxlength="700" placeholder="نص الصفحة… مثال: {خرج|خرجت} {n} إلى الحديقة مع {mom}.">' + esc(p.t || '') + '</textarea>';
+    div.querySelector('.pd').onclick = function () { div.remove(); stPreview(); };
+    div.querySelector('.pt').oninput = stPreview;
+    return div;
+  }
+  function editStory(s) {
+    MG.edit = s ? s.id : null; var d = s ? s.data : { title: '', value: '', scene: 'home', pages: [{ p: '🌙' }, { p: '⭐' }, { p: '💛' }] };
+    $('#stEdT').textContent = s ? 'تعديل القصة' : 'قصة جديدة';
+    $('#stTitle').value = d.title; $('#stValue').value = d.value; $('#stScene').value = d.scene || 'home';
+    $('#stM').value = d.date ? d.date.slice(0, 2) : ''; $('#stD').value = d.date ? d.date.slice(3) : '';
+    $('#stActive').checked = s ? s.active : true;
+    var box = $('#stPages'); box.innerHTML = ''; d.pages.forEach(function (p) { box.appendChild(pageRow(p)); });
+    $('#stEd').hidden = false; $('#stMsg').className = 'msg'; stPreview(); $('#stEd').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  function fillNames(t) {
+    return String(t || '').replace(/\{n\}/g, 'يارا').replace(/\{dad\}/g, 'بابا').replace(/\{mom\}/g, 'ماما').replace(/\{fr\}/g, 'وليد')
+      .replace(/\{\{([^|}]*)\|([^|}]*)\|([^}]*)\}\}/g, '$1').replace(/\[\[([\s\S]*?)\]\]/g, '$1').replace(/\{([^|}]*)\|([^}]*)\}/g, '$2');
+  }
+  function stPreview() {
+    var pg = [].map.call($('#stPages').querySelectorAll('.stpg'), function (r) { return { p: r.querySelector('.pe').value, t: r.querySelector('.pt').value }; }).filter(function (p) { return p.t.trim(); });
+    $('#stPrev').innerHTML = $('#stTitle').value.trim() || pg.length ? '<b>معاينة (البطلة: يارا، وأخوها وليد):</b><h4>' + esc(fillNames($('#stTitle').value)) + '</h4>' + pg.map(function (p) { return '<p><span>' + esc(p.p) + '</span> ' + esc(fillNames(p.t)) + '</p>'; }).join('') : '';
+  }
+  $('#stTitle').oninput = stPreview;
+  $('#stNew').onclick = function () { editStory(null); };
+  $('#stAddPage').onclick = function () { $('#stPages').appendChild(pageRow({ p: '✨' })); };
+  $('#stCancel').onclick = function () { $('#stEd').hidden = true; };
+  $('#stSave').onclick = function () {
+    var pages = [].map.call($('#stPages').querySelectorAll('.stpg'), function (r) { return { p: r.querySelector('.pe').value.trim(), s: r.querySelector('.ps').value, t: r.querySelector('.pt').value.trim() }; }).filter(function (p) { return p.t; });
+    var title = $('#stTitle').value.trim(), m = $('#stM').value, d = $('#stD').value;
+    if (!title) return show($('#stMsg'), 'bad', 'اكتب عنوان القصة.');
+    if (pages.length < 2) return show($('#stMsg'), 'bad', 'القصة تحتاج صفحتين على الأقل.');
+    if ((m && !d) || (!m && d)) return show($('#stMsg'), 'bad', 'اختر الشهر واليوم معاً، أو اتركهم فاضيين.');
+    var btn = $('#stSave'); btn.disabled = true;
+    api(PUSH, '/admin/stories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: MG.edit, active: $('#stActive').checked,
+      data: { title: title, value: $('#stValue').value.trim(), scene: $('#stScene').value, date: m && d ? m + '-' + d : '', pages: pages } }) })
+      .then(function () { show($('#stMsg'), 'ok', '✓ انحفظت. تظهر في سِراج عند العائلات من ثاني مرة يفتحون فيها التطبيق.'); $('#stEd').hidden = true; loadStories(); }, function (e) { show($('#stMsg'), 'bad', e && e.error === 'story-invalid' ? 'تأكد من العنوان وصفحتين على الأقل.' : errText(e)); })
+      .then(function () { btn.disabled = false; });
+  };
+
+  /* التقرير الأسبوعي */
+  function loadReportInfo() {
+    api(PUSH, '/admin/info').then(function (j) {
+      var miss = [];
+      if (!j.mail) miss.push('ربط الإيميل (MAIL) ما اشتغل — تأكد إن Email Routing مفعّل لـ wamdarc.com في Cloudflare.');
+      if (!j.reportTo) miss.push('أضف متغير سري اسمه REPORT_TO في push-wamdarc ← Settings ← Variables and Secrets، وقيمته إيميلك (لازم يكون Destination address مفعّل في Email Routing).');
+      if (!j.siraj || !j.nabd) miss.push('الاتصال الداخلي بسِراج/نَبْض ما اشتغل بعد (Service bindings).');
+      $('#repSetup').hidden = !miss.length; $('#repSetup').innerHTML = miss.map(esc).join('<br>');
+      $('#repState').innerHTML = miss.length ? '⚠️ يحتاج إعداد' : '<span style="color:var(--ok)">● مفعّل — كل أحد ٩ص</span>';
+    }, function () { $('#repState').textContent = ''; });
+    api(PUSH, '/admin/reports').then(function (j) {
+      $('#repList').innerHTML = (j.items || []).slice(0, 8).map(function (r) { return '<li><span class="dot" style="background:' + (r.sent ? 'var(--ok)' : 'var(--bad)') + '"></span><div>' + esc(r.subject || r.week) + '<span>' + dt(r.created) + ' · ' + (r.sent ? 'وصل ✓' : 'ما انرسل: ' + esc(r.err || '')) + '</span></div></li>'; }).join('');
+    }, function () {});
+  }
+  $('#repPrev').onclick = function () {
+    var v = $('#repView'); if (!v.hidden) { v.hidden = true; return; }
+    show($('#repMsg'), 'ok', 'نجهّز التقرير…');
+    api(PUSH, '/admin/report').then(function (j) {
+      $('#repMsg').className = 'msg';
+      var body = j.html.replace(/^[\s\S]*<body[^>]*>/, '').replace(/<\/body>[\s\S]*$/, '');
+      v.innerHTML = body; v.hidden = false;
+    }, function (e) { show($('#repMsg'), 'bad', errText(e)); });
+  };
+  $('#repSend').onclick = function () {
+    var b = $('#repSend'); b.disabled = true; show($('#repMsg'), 'ok', 'نرسل…');
+    api(PUSH, '/admin/report/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }).then(function () { show($('#repMsg'), 'ok', '✓ انرسل لإيميلك. شيك على البريد (وأحياناً مجلد Spam أول مرة).'); loadReportInfo(); },
+      function (e) { show($('#repMsg'), 'bad', 'ما انرسل: ' + (e.error === 'no-report-to' ? 'أضف REPORT_TO أولاً (شوف التنبيه فوق).' : e.error === 'no-mail-binding' ? 'ربط الإيميل ما اشتغل بعد.' : errText(e))); loadReportInfo(); })
+      .then(function () { b.disabled = false; });
+  };
+
   function load() {
     var res = { push: {}, siraj: {}, nabd: {} };
     var t0 = performance.now(), ms = function () { return Math.round(performance.now() - t0); };
@@ -965,6 +1238,17 @@ main{padding-top:0}
     var apps = checked(), t = $('#arT').value.trim(), b = $('#arB').value.trim();
     if (!apps.length) return show($('#sendMsg'), 'bad', 'اختر تطبيقاً واحداً على الأقل.');
     if (!t) return show($('#sendMsg'), 'bad', 'اكتب عنوان الرسالة.');
+    if (WHEN === 'later') {
+      var at = $('#whenAt').value ? new Date($('#whenAt').value).getTime() : 0;
+      if (!at || at < Date.now() + 60e3) return show($('#sendMsg'), 'bad', 'اختر وقتاً بعد دقيقة على الأقل من الآن.');
+      var whenTxt = new Date(at).toLocaleString('ar-SA-u-ca-gregory-nu-latn', { dateStyle: 'full', timeStyle: 'short' });
+      if (!confirm('جدولة «' + t + '» لمشتركي ' + apps.map(function (a) { return BY[a].name; }).join(' و') + '\nوقت الإرسال: ' + whenTxt + '؟')) return;
+      var sb = $('#send'); sb.disabled = true;
+      api(PUSH, '/admin/sched', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ at: at, apps: apps, kind: kind, ar: { title: t, body: b }, en: { title: $('#enT').value.trim(), body: $('#enB').value.trim() } }) })
+        .then(function () { show($('#sendMsg'), 'ok', '✓ تمت الجدولة: ' + whenTxt); loadSched(); }, function (e) { show($('#sendMsg'), 'bad', errText(e)); })
+        .then(function () { sb.disabled = false; });
+      return;
+    }
     if (!confirm('إرسال «' + t + '» إلى مشتركي ' + apps.map(function (a) { return BY[a].name; }).join(' و') + '؟')) return;
     var btn = $('#send'); btn.disabled = true;
     var pushApps = apps.filter(function (a) { return BY[a].srv === 'push'; }), jobs = [], out = [];

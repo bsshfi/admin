@@ -17,3 +17,16 @@ crons = ["* * * * *"]
 
 [observability]
 enabled = true
+
+# إرسال الإشعارات المجدولة لسِراج ونَبْض، وجلب أرقامهم للتقرير الأسبوعي (اتصال داخلي بين الخوادم)
+[[services]]
+binding = "SIRAJ"
+service = "siraj-api"
+
+[[services]]
+binding = "NABD"
+service = "nabd-api"
+
+# التقرير الأسبوعي بالإيميل (Cloudflare Email Routing). الإيميل المستلم يُضاف كمتغير سري REPORT_TO في Cloudflare
+[[send_email]]
+name = "MAIL"
