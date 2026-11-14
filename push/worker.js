@@ -855,7 +855,7 @@ async function queueBroadcast(env, body) {
 }
 
 /* ---------- الإحصائيات (لكل التطبيقات والموقع) ---------- */
-const STAT_APPS = ['site', 'sahm', 'falaq', 'khuta', 'siraj', 'nabd'];
+const STAT_APPS = ['site', 'sahm', 'falaq', 'khuta', 'siraj', 'nabd', 'harf'];
 const ONLINE_MS = 150e3;                                     // متصل الآن = آخر نبضة خلال دقيقتين ونص
 const ryDay = t => new Date(t + 3 * 36e5).toISOString().slice(0, 10);   // اليوم بتوقيت الرياض
 async function hit(env, b) {
@@ -952,8 +952,8 @@ async function tick(env) {
    - قصص سِراج المضافة من اللوحة — يقرأها سِراج من /stories
    - التقرير الأسبوعي كل أحد ٩ صباحاً بتوقيت الرياض (إيميل عبر Cloudflare Email Routing)
    ===================================================================== */
-const ALL_APPS = ['sahm', 'falaq', 'khuta', 'siraj', 'nabd'];
-const APP_AR = { site: 'الموقع', sahm: 'سهم', falaq: 'فَلَق', khuta: 'خُطى', siraj: 'سِراج', nabd: 'نَبْض' };
+const ALL_APPS = ['sahm', 'falaq', 'khuta', 'siraj', 'nabd', 'harf'];   // حَرف: رسائل داخل التطبيق والتقرير فقط (ما عنده إشعارات)
+const APP_AR = { site: 'الموقع', sahm: 'سهم', falaq: 'فَلَق', khuta: 'خُطى', siraj: 'سِراج', nabd: 'نَبْض', harf: 'حَرف' };
 const clipS = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
 const svcPath = { siraj: 'SIRAJ', nabd: 'NABD' };
 

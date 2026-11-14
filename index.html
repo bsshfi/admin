@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src https://wamdarc.com https://*.wamdarc.com https://api.github.com https://push-wamdarc.bsshfi.workers.dev https://siraj-api.bsshfi.workers.dev https://nabd-api.bsshfi.workers.dev; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src https://wamdarc.com https://*.wamdarc.com https://api.github.com https://push-wamdarc.bsshfi.workers.dev https://siraj-api.bsshfi.workers.dev https://nabd-api.bsshfi.workers.dev https://harf-api.bsshfi.workers.dev; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <script>
 /* حماية: فتح اللوحة دائماً عبر HTTPS، ورفض فتحها داخل إطار موقع ثاني (clickjacking) */
@@ -435,6 +435,9 @@ main{padding-top:0}
         <section class="apppanel" style="--c:#8E44C9"><h2><span class="dot" style="background:#8E44C9"></span>سِراج<span class="sp"></span><a class="tiny" href="https://siraj.wamdarc.com" target="_blank" rel="noopener">↗</a></h2><div id="sirajP"></div></section>
       </div>
       <div class="cols">
+        <section class="apppanel" style="--c:#12897F"><h2><span class="dot" style="background:#12897F"></span>حَرف<span class="sp"></span><a class="tiny" href="https://harf.wamdarc.com" target="_blank" rel="noopener">↗</a></h2><div id="harfP"></div></section>
+      </div>
+      <div class="cols">
         <section>
           <h2>آخر النشاط<span class="sp"></span><label class="tiny"><input type="checkbox" id="onlyLive"> المتصلين فقط</label></h2>
           <ul class="feed" id="feed"></ul>
@@ -526,12 +529,14 @@ main{padding-top:0}
   var PUSH = 'https://push-wamdarc.bsshfi.workers.dev';
   var SIRAJ = 'https://siraj-api.bsshfi.workers.dev';
   var NABD = 'https://nabd-api.bsshfi.workers.dev';
+  var HARF = 'https://harf-api.bsshfi.workers.dev';
   var APPS = [
     { id: 'falaq', name: 'فَلَق', url: 'falaq.wamdarc.com', color: '#E0A060', srv: 'push' },
     { id: 'sahm', name: 'سهم', url: 'sahm.wamdarc.com', color: '#5BC08A', srv: 'push' },
     { id: 'khuta', name: 'خُطى', url: 'khuta.wamdarc.com', color: '#4DB8F0', srv: 'push' },
     { id: 'siraj', name: 'سِراج', url: 'siraj.wamdarc.com', color: '#8E44C9', srv: 'siraj' },
-    { id: 'nabd', name: 'نَبْض', url: 'nabd.wamdarc.com', color: '#3C5BD6', srv: 'nabd' }
+    { id: 'nabd', name: 'نَبْض', url: 'nabd.wamdarc.com', color: '#3C5BD6', srv: 'nabd' },
+    { id: 'harf', name: 'حَرف', url: 'harf.wamdarc.com', color: '#12897F', srv: 'harf', nopush: true }   // لعبة بدون إشعارات
   ];
   var BY = {}; APPS.forEach(function (a) { BY[a.id] = a; });
   /* مفتاح الإدارة: يبقى للجلسة فقط (sessionStorage) إلا إذا اخترت «تذكّرني».
@@ -547,7 +552,7 @@ main{padding-top:0}
   var IDLE = 30 * 60e3, lastAct = Date.now();
   ['pointerdown', 'keydown', 'scroll', 'touchstart'].forEach(function (ev) { addEventListener(ev, function () { lastAct = Date.now(); }, { passive: true }); });
   setInterval(function () { if (KEY && !REM && Date.now() - lastAct > IDLE) { forget(); location.reload(); } }, 30e3);
-  var kind = 'news', data = { push: null, siraj: null, nabd: null };
+  var kind = 'news', data = { push: null, siraj: null, nabd: null, harf: null };
   var TPL = {
     fitr: { arT: 'عيدكم مبارك 🌙', arB: 'عيد فطر سعيد، تقبّل الله منا ومنكم صالح الأعمال. كل عام وأنتم بخير.', enT: 'Eid Mubarak 🌙', enB: 'Wishing you a blessed Eid al-Fitr. May Allah accept from us and from you.' },
     adha: { arT: 'عيد أضحى مبارك 🐑', arB: 'تقبّل الله منا ومنكم، وكل عام وأنتم بخير.', enT: 'Eid al-Adha Mubarak', enB: 'May Allah accept from us and from you. Wishing you a blessed Eid.' },
@@ -583,7 +588,8 @@ main{padding-top:0}
   function drawStatus(res) {
     $('#status').innerHTML = pill('push-wamdarc', res.push.ok ? 'ok' : 'bad', res.push.ok ? 'متصل' : 'غير متصل') +
       pill('siraj-api', res.siraj.ok ? 'ok' : 'bad', res.siraj.ok ? 'متصل' : 'غير متصل') +
-      pill('nabd-api', res.nabd.ok ? 'ok' : 'bad', res.nabd.ok ? 'متصل' : 'غير متصل');
+      pill('nabd-api', res.nabd.ok ? 'ok' : 'bad', res.nabd.ok ? 'متصل' : 'غير متصل') +
+      pill('harf-api', res.harf.ok ? 'ok' : 'bad', res.harf.ok ? 'متصل' : 'غير متصل');
   }
 
   /* ---------- الإحصائيات ---------- */
@@ -674,7 +680,7 @@ main{padding-top:0}
     drawDow(j, sel);
     drawFunnel(T, A, subsP, selApps, rl);
     drawMix(j, sel);
-    drawNabd(); drawSiraj();
+    drawNabd(); drawSiraj(); drawHarf();
     drawFeed(j, now);
     renderHome();
     var pg = j.pages || [], pmax = Math.max.apply(null, pg.map(function (r) { return r.n; }).concat([1]));
@@ -746,6 +752,24 @@ main{padding-top:0}
       '<div class="kv"><span>🔔 الإشعارات</span><b>' + fmt(n.subs) + ' جهاز</b></div>' +
       (n.versions && n.versions.length ? '<div class="kv"><span>الإصدارات</span><b dir="ltr">' + n.versions.map(function (v) { return 'v' + esc(v.ver || '?') + ' · ' + v.n; }).join('  ') + '</b></div>' : '') +
       '<div class="mini">' + bars + '</div><div class="legend">' + K.map(function (k) { return '<span><i style="background:' + k[1] + '"></i>' + k[2] + '</span>'; }).join('') + '<span style="margin-inline-start:auto">رسائل آخر ١٤ يوم</span></div>';
+  }
+  function drawHarf() {
+    var h = data.harf, el = $('#harfP');
+    if (!el) return;
+    if (!h) { el.innerHTML = '<p class="note">تعذّر الاتصال بخادم حَرف.</p>'; return; }
+    var dm = {}; (h.daily || []).forEach(function (r) { dm[r.day] = r.n; });
+    var days = []; for (var i = 13; i >= 0; i--) days.push(new Date(Date.now() - i * 864e5 + 3 * 36e5).toISOString().slice(0, 10));
+    var max = Math.max.apply(null, days.map(function (d) { return dm[d] || 0; }).concat([1]));
+    var bars = days.map(function (d) { var v = dm[d] || 0; return '<div title="' + d + ': ' + v + ' لعبة">' + (v ? '<i style="height:' + (v / max * 100) + '%;background:#12897F"></i>' : '') + '</div>'; }).join('');
+    var st = { lobby: 'بانتظار اللاعبين', play: 'يكتبون', review: 'تصحيح', score: 'بين الجولات', done: 'انتهت' };
+    el.innerHTML = '<div class="m4">' + stat(h.games, 'لعبة') + stat(h.players, 'لاعب') + stat(h.liveGames, 'شغالة الحين') + stat(h.online, 'متصل الآن') + '</div>' +
+      '<div class="kv"><span>اليوم</span><b>' + fmt(h.gamesToday) + ' لعبة · ' + fmt(h.playersToday) + ' لاعب</b></div>' +
+      '<div class="kv"><span>هالأسبوع</span><b>' + fmt(h.gamesWeek) + ' لعبة · معدل ' + h.avgPlayers + ' لاعب باللعبة</b></div>' +
+      '<div class="kv"><span>الجولات</span><b>' + fmt(h.rounds) + ' جولة · ' + fmt(h.finished) + ' لعبة كمّلت للنهاية</b></div>' +
+      ((h.recent || []).length ? '<div class="kv" style="display:block"><span>آخر الألعاب</span>' + h.recent.slice(0, 6).map(function (g) {
+        return '<div style="display:flex;justify-content:space-between;gap:8px;margin-top:6px;font-size:13px"><span>#' + g.id + ' · ' + esc(g.name) + '</span><b style="font-weight:600">' + g.players + ' لاعب · ' + (st[g.status] || g.status) + ' · ' + ago(g.updated, Date.now()) + '</b></div>';
+      }).join('') + '</div>' : '') +
+      '<div class="mini">' + bars + '</div><div class="legend"><span><i style="background:#12897F"></i>ألعاب جديدة</span><span style="margin-inline-start:auto">آخر ١٤ يوم</span></div>';
   }
   function drawSiraj() {
     var s = data.siraj, el = $('#sirajP');
@@ -845,8 +869,8 @@ main{padding-top:0}
 
   /* ---------- نظرة عامة + التطبيقات ---------- */
   var SRV = null, HEALTH = {}, COMMITS = null, HEALTH_AT = 0;
-  var REPO = { site: 'wamdarc', sahm: 'sahm', falaq: 'falaq', khuta: 'khuta', siraj: 'siraj', nabd: 'nabd', admin: 'admin' };
-  function icon(id) { return 'https://wamdarc.com/assets/' + id + '/icon.webp'; }
+  var REPO = { site: 'wamdarc', sahm: 'sahm', falaq: 'falaq', khuta: 'khuta', siraj: 'siraj', nabd: 'nabd', harf: 'harf', admin: 'admin' };
+  function icon(id) { return id === 'harf' ? 'https://harf.wamdarc.com/icons/icon-192.png' : 'https://wamdarc.com/assets/' + id + '/icon.webp'; }
   function cleanVer(v) { return String(v || '').replace(/^[a-z]+-/i, '').replace(/^v/i, ''); }
   function timed(url) {
     var t0 = performance.now();
@@ -899,7 +923,7 @@ main{padding-top:0}
       var r = HEALTH[it.id]; var st = !r ? '' : r.ok ? 'ok' : 'bad';
       return '<a class="hc" href="https://' + it.sub + '" target="_blank" rel="noopener"><img src="' + it.img + '" alt=""><div><b>' + it.name + (r && r.ver ? ' <span class="tiny" dir="ltr">v' + esc(r.ver) + '</span>' : '') + '</b><small>' + (r ? (r.ok ? r.ms + ' ms' : 'لا يستجيب') : 'نفحص…') + ' · ' + it.sub + '</small></div><i class="' + st + '"></i></a>';
     });
-    [['push', 'خادم الإشعارات', 'push-wamdarc'], ['siraj', 'خادم سِراج', 'siraj-api'], ['nabd', 'خادم نَبْض', 'nabd-api']].forEach(function (x) {
+    [['push', 'خادم الإشعارات', 'push-wamdarc'], ['siraj', 'خادم سِراج', 'siraj-api'], ['nabd', 'خادم نَبْض', 'nabd-api'], ['harf', 'خادم حَرف', 'harf-api']].forEach(function (x) {
       var r = SRV && SRV[x[0]]; var st = !r ? '' : r.ok ? 'ok' : 'bad';
       hs.push('<div class="hc"><span class="si">⚙️</span><div><b>' + x[1] + '</b><small>' + (r ? (r.ok ? r.ms + ' ms' : 'غير متصل') : '—') + ' · ' + x[2] + '</small></div><i class="' + st + '"></i></div>');
     });
@@ -907,7 +931,7 @@ main{padding-top:0}
     $('#healthAt').textContent = HEALTH_AT ? 'فُحص ' + new Date(HEALTH_AT).toLocaleTimeString('ar-SA-u-ca-gregory-nu-latn', { hour: 'numeric', minute: '2-digit' }) : '';
     // تنبيهات
     var al = [];
-    if (SRV) [['push', 'خادم الإشعارات'], ['siraj', 'خادم سِراج'], ['nabd', 'خادم نَبْض']].forEach(function (x) { if (!SRV[x[0]].ok) al.push(['bad', '⚠️ ' + x[1] + ': ' + errText(SRV[x[0]].e)]); });
+    if (SRV) [['push', 'خادم الإشعارات'], ['siraj', 'خادم سِراج'], ['nabd', 'خادم نَبْض'], ['harf', 'خادم حَرف']].forEach(function (x) { if (SRV[x[0]] && !SRV[x[0]].ok) al.push(['bad', '⚠️ ' + x[1] + ': ' + errText(SRV[x[0]].e)]); });
     items.forEach(function (it) { var r = HEALTH[it.id]; if (r && !r.ok) al.push(['bad', '⚠️ ' + it.name + ' (' + it.sub + ') لا يستجيب الآن.']); });
     APPS.forEach(function (a) { var l = latestOf(a.id); if (l.pct != null && l.tot >= 5 && l.pct < 50) al.push(['warn', '🔄 ' + a.name + ': ' + l.pct + '% فقط على آخر إصدار (v' + esc(HEALTH[a.id].ver) + '). أرسل إشعار «تحديث جديد» ليفتحوه ويتحدّث.']); });
     if (!al.length && HEALTH_AT) al.push(['ok', '✓ كل شي يشتغل تمام.']);
@@ -931,10 +955,10 @@ main{padding-top:0}
       return '<section class="ma" style="--c:' + a.color + '"><div class="hd"><img src="' + icon(a.id) + '" alt=""><div style="flex:1"><b>' + a.name + '</b><a href="https://' + a.url + '" target="_blank" rel="noopener">' + a.url + ' ↗</a></div>' +
         '<span class="pill ' + (r.ok ? 'ok' : r.t !== undefined ? 'bad' : '') + '"><i></i>' + (r.ver ? 'v' + esc(r.ver) : '—') + '</span></div>' +
         '<div class="vers"><div><b>' + (l.pct == null ? '—' : l.pct + '%') + '</b><span>على آخر إصدار</span></div><div><b>' + fmt(t.online) + '</b><span>متصل الآن</span></div><div><b>' + fmt(ac.d7) + '</b><span>نشط ٧ أيام</span></div>' +
-        '<div><b>' + fmt(t.total) + '</b><span>كل الأجهزة</span></div><div><b>' + fmt(t.inst) + '</b><span>مثبّت</span></div><div><b>' + fmt(subs[a.id]) + '</b><span>🔔 مشترك</span></div></div>' +
+        '<div><b>' + fmt(t.total) + '</b><span>كل الأجهزة</span></div><div><b>' + fmt(t.inst) + '</b><span>مثبّت</span></div>' + (a.nopush ? '<div><b>' + fmt((data.harf || {}).games) + '</b><span>🎮 لعبة</span></div>' : '<div><b>' + fmt(subs[a.id]) + '</b><span>🔔 مشترك</span></div>') + '</div>' +
         '<div class="last">' + (c ? '🛠️ آخر تحديث: ' + esc(c.m.slice(0, 120)) + '<small>' + ago(c.t, Date.now()) + ' · <a href="' + esc(c.u) + '" target="_blank" rel="noopener" style="color:inherit">GitHub ↗</a></small>' : '<small>آخر تحديث: —</small>') + '</div>' +
         '<div class="qr"><img src="https://wamdarc.com/assets/qr/' + a.id + '.svg" alt="QR ' + a.name + '" loading="lazy"><div class="acts">' +
-        '<button data-act="notif" data-a="' + a.id + '">🔔 إشعار لهذا التطبيق</button><button data-act="stats" data-a="' + a.id + '">📊 إحصائياته</button>' +
+        (a.nopush ? '' : '<button data-act="notif" data-a="' + a.id + '">🔔 إشعار لهذا التطبيق</button>') + '<button data-act="stats" data-a="' + a.id + '">📊 إحصائياته</button>' +
         '<button data-act="copy" data-a="' + a.id + '">🔗 نسخ الرابط</button><button data-act="share" data-a="' + a.id + '">↗ مشاركة</button>' +
         '<a href="https://wamdarc.com/' + a.id + '/" target="_blank" rel="noopener">صفحته في الموقع</a><a href="https://wamdarc.com/assets/qr/' + a.id + '.svg" target="_blank" rel="noopener">QR للطباعة</a>' +
         '<a href="https://github.com/bsshfi/' + REPO[a.id] + '/commits" target="_blank" rel="noopener">سجل التعديلات</a></div></div></section>';
@@ -1129,17 +1153,19 @@ main{padding-top:0}
   };
 
   function load() {
-    var res = { push: {}, siraj: {}, nabd: {} };
+    var res = { push: {}, siraj: {}, nabd: {}, harf: {} };
     var t0 = performance.now(), ms = function () { return Math.round(performance.now() - t0); };
     var p1 = api(PUSH, '/stats').then(function (j) { res.push = { ok: true, j: j, ms: ms() }; }, function (e) { res.push = { ok: false, e: e, ms: ms() }; });
     var p2 = api(SIRAJ, '/stats').then(function (j) { res.siraj = { ok: true, j: j, ms: ms() }; }, function (e) { res.siraj = { ok: false, e: e, ms: ms() }; });
     var p3 = api(NABD, '/stats').then(function (j) { res.nabd = { ok: true, j: j, ms: ms() }; }, function (e) { res.nabd = { ok: false, e: e, ms: ms() }; });
-    return Promise.all([p1, p2, p3]).then(function () {
+    var p4 = api(HARF, '/stats').then(function (j) { res.harf = { ok: true, j: j, ms: ms() }; }, function (e) { res.harf = { ok: false, e: e, ms: ms() }; });
+    return Promise.all([p1, p2, p3, p4]).then(function () {
       drawStatus(res); SRV = res;
       if (!res.push.ok && !res.siraj.ok && !res.nabd.ok) throw res.push.e || res.siraj.e || res.nabd.e;
       data.push = res.push.ok ? res.push.j : null;
       data.siraj = res.siraj.ok ? res.siraj.j : null;
       data.nabd = res.nabd.ok ? res.nabd.j : null;
+      data.harf = res.harf.ok ? res.harf.j : null;
       $('#login').hidden = true; $('#panel').hidden = false; $('#logout').hidden = false; $('#top').hidden = false;
       checkHealth(); loadCommits();
       render(res);
@@ -1166,12 +1192,18 @@ main{padding-top:0}
           '<br>📦 في السيرفر الحين: ' + (n.queued || 0) + ' رسالة بانتظار التوصيل' +
           ((n.versions || [])[0] ? '<br>🔄 أكثر إصدار: v' + esc(n.versions[0].ver || '—') + ' · ' + n.versions[0].n + ' جهاز' : '') + '</div>';
       }
+      if (a.id === 'harf' && data.harf) {
+        var h = data.harf;
+        ex = '<div class="ex">🎮 ' + h.gamesToday + ' لعبة اليوم · ' + h.gamesWeek + ' هالأسبوع · <span style="color:var(--ok)">' + (h.liveGames || 0) + ' شغالة الحين</span>' +
+          '<br>👥 ' + h.players + ' لاعب (معدل ' + h.avgPlayers + ' باللعبة) · ' + (h.online || 0) + ' متصل الآن<br>🔤 ' + h.rounds + ' جولة · ' + h.finished + ' لعبة كمّلت للنهاية</div>';
+      }
       if (!up) ex = '<div class="ex" style="color:var(--bad)">' + esc(errText((res[a.srv] || {}).e)) + '</div>';
       return '<div class="app"><div class="hd"><span class="dot" style="background:' + a.color + '"></span><b>' + a.name + '</b><a href="https://' + a.url + '" target="_blank" rel="noopener">↗</a></div>' +
-        '<div class="big">' + (up ? (counts[a.id] || 0) : '—') + '</div><div class="sub">مشترك في الإشعارات</div>' + ex + '</div>';
+        (a.nopush ? '<div class="big">' + (up ? (data.harf.games || 0) : '—') + '</div><div class="sub">لعبة إلى الآن</div>'
+          : '<div class="big">' + (up ? (counts[a.id] || 0) : '—') + '</div><div class="sub">مشترك في الإشعارات</div>') + ex + '</div>';
     }).join('');
     var keep = {}; document.querySelectorAll('.pk input').forEach(function (i) { keep[i.value] = i.checked; });
-    $('#pick').innerHTML = APPS.map(function (a) {
+    $('#pick').innerHTML = APPS.filter(function (a) { return !a.nopush; }).map(function (a) {
       var up = !!data[a.srv];
       var on = a.id in keep ? keep[a.id] : true;
       return '<label class="pk"><input type="checkbox" value="' + a.id + '"' + (on && up ? ' checked' : '') + (up ? '' : ' disabled') + '><b>' + a.name + '</b><span>' + (up ? (counts[a.id] || 0) + ' مشترك' : 'غير متصل') + '</span></label>';
