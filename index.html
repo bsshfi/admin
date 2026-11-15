@@ -766,6 +766,7 @@ main{padding-top:0}
       '<div class="kv"><span>اليوم</span><b>' + fmt(h.gamesToday) + ' لعبة · ' + fmt(h.playersToday) + ' لاعب</b></div>' +
       '<div class="kv"><span>هالأسبوع</span><b>' + fmt(h.gamesWeek) + ' لعبة · معدل ' + h.avgPlayers + ' لاعب باللعبة</b></div>' +
       '<div class="kv"><span>الجولات</span><b>' + fmt(h.rounds) + ' جولة · ' + fmt(h.finished) + ' لعبة كمّلت للنهاية</b></div>' +
+      '<div class="kv"><span>ملفي والقروبات</span><b>' + fmt(h.profiles) + ' ملف · ' + fmt(h.groups) + ' قروب (' + fmt(h.inGroups) + ' فرد) · ' + fmt(h.paper) + ' لعبة ورقة</b></div>' +
       ((h.recent || []).length ? '<div class="kv" style="display:block"><span>آخر الألعاب</span>' + h.recent.slice(0, 6).map(function (g) {
         return '<div style="display:flex;justify-content:space-between;gap:8px;margin-top:6px;font-size:13px"><span>#' + g.id + ' · ' + esc(g.name) + '</span><b style="font-weight:600">' + g.players + ' لاعب · ' + (st[g.status] || g.status) + ' · ' + ago(g.updated, Date.now()) + '</b></div>';
       }).join('') + '</div>' : '') +
@@ -1195,7 +1196,8 @@ main{padding-top:0}
       if (a.id === 'harf' && data.harf) {
         var h = data.harf;
         ex = '<div class="ex">🎮 ' + h.gamesToday + ' لعبة اليوم · ' + h.gamesWeek + ' هالأسبوع · <span style="color:var(--ok)">' + (h.liveGames || 0) + ' شغالة الحين</span>' +
-          '<br>👥 ' + h.players + ' لاعب (معدل ' + h.avgPlayers + ' باللعبة) · ' + (h.online || 0) + ' متصل الآن<br>🔤 ' + h.rounds + ' جولة · ' + h.finished + ' لعبة كمّلت للنهاية</div>';
+          '<br>👥 ' + h.players + ' لاعب (معدل ' + h.avgPlayers + ' باللعبة) · ' + (h.online || 0) + ' متصل الآن<br>🔤 ' + h.rounds + ' جولة · ' + h.finished + ' لعبة كمّلت للنهاية' +
+          (h.profiles != null ? '<br>🗂️ ' + h.profiles + ' ملف · 👨‍👩‍👧 ' + h.groups + ' قروب' : '') + '</div>';
       }
       if (!up) ex = '<div class="ex" style="color:var(--bad)">' + esc(errText((res[a.srv] || {}).e)) + '</div>';
       return '<div class="app"><div class="hd"><span class="dot" style="background:' + a.color + '"></span><b>' + a.name + '</b><a href="https://' + a.url + '" target="_blank" rel="noopener">↗</a></div>' +
