@@ -1,6 +1,6 @@
 import { EmailMessage } from 'cloudflare:email';
-/* خادم إشعارات ومض آرك — فَلَق وسهم وخُطى. ملف واحد جاهز للصق في Cloudflare. */
-/* فَلَق | FALAQ — محرك الحسابات الفلكية (بدون إنترنت)
+/* خادم إشعارات ومض آرك — فلق وسهم وخطى. ملف واحد جاهز للصق في Cloudflare. */
+/* فلق | FALAQ — محرك الحسابات الفلكية (بدون إنترنت)
    مواقيت الصلاة، الشمس، القمر، القبلة، المنازل، التقويم الهجري */
 (function (root) {
   'use strict';
@@ -370,7 +370,7 @@ import { EmailMessage } from 'cloudflare:email';
   };
 })(typeof window !== 'undefined' ? window : globalThis);
 
-/* خادم إشعارات ومض آرك — فَلَق وسهم وخُطى
+/* خادم إشعارات ومض آرك — فلق وسهم وخطى
    Cloudflare Worker + قاعدة بيانات D1 + تشغيل مجدول كل دقيقة.
    ينشئ مفاتيح VAPID والجداول بنفسه. الإدارة من admin.wamdarc.com، وتحتاج المتغير السري ADMIN_KEY. */
 
@@ -389,14 +389,14 @@ const MSG = {
     asr: ['أذان العصر', 'حان الآن وقت صلاة العصر'],
     maghrib: ['أذان المغرب', 'حان الآن وقت صلاة المغرب'],
     isha: ['أذان العشاء', 'حان الآن وقت صلاة العشاء'],
-    test_falaq: ['فَلَق', 'تم تفعيل الإشعارات، وسيصلك تنبيه عند دخول وقت كل صلاة.'],
+    test_falaq: ['فلق', 'تم تفعيل الإشعارات، وسيصلك تنبيه عند دخول وقت كل صلاة.'],
     test_sahm: ['سهم', 'تم تفعيل الإشعارات. ينبهك سهم قبل الغروب إذا ثبّت المخيم أو السيارة، ويذكّرك بدخول المواسم وبحفظ نسخة من أماكنك.'],
     sunset_camp: ['🌇 باقي نص ساعة على الغروب', 'ارجع للمخيم قبل الظلام، وسهم يوجهك له حتى بدون إنترنت.'],
     sunset_car: ['🌇 باقي نص ساعة على الغروب', 'ارجع لسيارتك قبل الظلام، وسهم يوجهك لها حتى بدون إنترنت.'],
-    test_khuta: ['خُطى', 'تم تفعيل الإشعارات. سنذكّرك بذكرى رحلاتك وبحفظ نسخة احتياطية.'],
+    test_khuta: ['خطى', 'تم تفعيل الإشعارات. سنذكّرك بذكرى رحلاتك وبحفظ نسخة احتياطية.'],
     backup_sahm: ['نسخة احتياطية لأماكنك', 'مرّ شهر على آخر نسخة احتياطية. احفظ نسخة من أماكنك المفضلة حتى لا تضيع.'],
     backup_khuta: ['نسخة احتياطية لرحلاتك', 'مرّ شهر على آخر نسخة احتياطية. صدّر نسخة من رحلاتك وصورك من الإعدادات.'],
-    anniv: ['ذكرى رحلة', 'في مثل هذا اليوم بدأت إحدى رحلاتك. افتح خُطى وتذكّرها.'],
+    anniv: ['ذكرى رحلة', 'في مثل هذا اليوم بدأت إحدى رحلاتك. افتح خطى وتذكّرها.'],
     before: ['رحلتك بكرة ✈️', 'رحلة سعيدة! لا تنسَ جوازك وشاحن جوالك.'],
     after: ['أهلاً بعودتك 🏡', 'أضف صور رحلتك ويومياتها قبل ما تنساها.'],
     azkarM: ['أذكار الصباح ☀️', 'ابدأ يومك بأذكار الصباح.'],
@@ -544,7 +544,7 @@ const addDays = (ymd, n) => { const t = new Date(Date.UTC(ymd.y, ymd.m - 1, ymd.
 const ymdOf = s => ({ y: +s.slice(0, 4), m: +s.slice(5, 7), d: +s.slice(8, 10) });
 const best = list => list.filter(Boolean).sort((a, b) => a.at - b.at)[0] || null;
 
-/* ---------- فَلَق ---------- */
+/* ---------- فلق ---------- */
 function dayTimes(cfg, ymd) {
   const A = globalThis.Astro;
   const h = A.hijri(new Date(Date.UTC(ymd.y, ymd.m - 1, ymd.d, 12)), 'UTC');
@@ -587,7 +587,7 @@ function nextFalaq(cfg, after) {
   return best(c.filter(e => e.at > after));
 }
 
-/* ---------- سهم وخُطى: النسخة الاحتياطية ---------- */
+/* ---------- سهم وخطى: النسخة الاحتياطية ---------- */
 function nextBackup(cfg, state, after) {
   if (!cfg.prefs.backup || !cfg.count) return null;
   const base = cfg.lastBackup || cfg.since || after;
@@ -611,7 +611,7 @@ function nextSeason(cfg, after) {
   return best(c);
 }
 
-/* ---------- خُطى: الرحلات ---------- */
+/* ---------- خطى: الرحلات ---------- */
 function nextTrips(cfg, after) {
   const p = cfg.prefs, now = localYMD(after, cfg.tz), today = now.y * 1e4 + now.m * 100 + now.d, c = [];
   const rank = {};
@@ -740,11 +740,15 @@ function okEndpoint(env, u) {
 }
 
 /* ---------- قاعدة البيانات ---------- */
+/* الجداول: تُنشأ وتُرقّى مرة واحدة لكل رقم مخطط. أول طلب بعد تشغيل الخادم يقرأ رقم المخطط بسطر واحد
+   بدل ~٢٠ أمر، ولا يعيد الإنشاء إلا إذا ارتفع SCHEMA. ارفع الرقم مع أي جدول أو عمود جديد هنا. */
+const SCHEMA = 2;
 let ready = false;
 async function init(env) {
   if (ready) return;
+  try { const r = await env.DB.prepare("SELECT v FROM config WHERE k = 'schema'").first(); if (r && +r.v >= SCHEMA) { ready = true; return; } } catch (e) { /* أول تشغيل: جدول config غير موجود */ }
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS subs (id TEXT PRIMARY KEY, endpoint TEXT NOT NULL, p256dh TEXT NOT NULL, auth TEXT NOT NULL, cfg TEXT NOT NULL, next_at INTEGER, next_key TEXT, updated INTEGER)').run();
-  // ترقية من الإصدار الأول (فَلَق فقط)
+  // ترقية من الإصدار الأول (فلق فقط)
   const cols = (await env.DB.prepare('PRAGMA table_info(subs)').all()).results.map(r => r.name);
   if (!cols.includes('app')) await env.DB.prepare("ALTER TABLE subs ADD COLUMN app TEXT NOT NULL DEFAULT 'falaq'").run();
   if (!cols.includes('state')) await env.DB.prepare("ALTER TABLE subs ADD COLUMN state TEXT NOT NULL DEFAULT '{}'").run();
@@ -763,6 +767,8 @@ async function init(env) {
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS appcfg (app TEXT PRIMARY KEY, v TEXT NOT NULL, updated INTEGER)').run();
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS stories (id TEXT PRIMARY KEY, app TEXT NOT NULL, data TEXT NOT NULL, active INTEGER DEFAULT 1, created INTEGER, updated INTEGER)').run();
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS reports (week TEXT PRIMARY KEY, created INTEGER, subject TEXT, html TEXT, sent INTEGER DEFAULT 0, err TEXT)').run();
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS afail (ip TEXT PRIMARY KEY, n INTEGER, last INTEGER, lock INTEGER)').run();
+  await env.DB.prepare("INSERT INTO config (k, v) VALUES ('schema', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v").bind(String(SCHEMA)).run();
   ready = true;
 }
 const nextCols = n => [n ? n.at : Date.now() + 6 * 36e5, n ? n.key : null, n && n.data ? JSON.stringify(n.data) : null];
@@ -947,13 +953,13 @@ async function tick(env) {
 
 /* =====================================================================
    إدارة التطبيقات من admin.wamdarc.com
-   - الإشعارات المجدولة (لكل التطبيقات الخمسة؛ سِراج ونَبْض عبر Service Bindings)
+   - الإشعارات المجدولة (لكل التطبيقات الخمسة؛ سراج ونبض عبر Service Bindings)
    - رسالة داخل التطبيق (إعلان/تنبيه) لكل تطبيق — تقرأها التطبيقات من /cfg
-   - قصص سِراج المضافة من اللوحة — يقرأها سِراج من /stories
+   - قصص سراج المضافة من اللوحة — يقرأها سراج من /stories
    - التقرير الأسبوعي كل أحد ٩ صباحاً بتوقيت الرياض (إيميل عبر Cloudflare Email Routing)
    ===================================================================== */
-const ALL_APPS = ['sahm', 'falaq', 'khuta', 'siraj', 'nabd', 'harf'];   // حَرف: رسائل داخل التطبيق والتقرير فقط (ما عنده إشعارات)
-const APP_AR = { site: 'الموقع', sahm: 'سهم', falaq: 'فَلَق', khuta: 'خُطى', siraj: 'سِراج', nabd: 'نَبْض', harf: 'حَرف' };
+const ALL_APPS = ['sahm', 'falaq', 'khuta', 'siraj', 'nabd', 'harf'];   // حرف: رسائل داخل التطبيق والتقرير فقط (ما عنده إشعارات)
+const APP_AR = { site: 'الموقع', sahm: 'سهم', falaq: 'فلق', khuta: 'خطى', siraj: 'سراج', nabd: 'نبض', harf: 'حرف' };   // بدون تشكيل (قاعدة الأسماء)
 const clipS = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
 const svcPath = { siraj: 'SIRAJ', nabd: 'NABD' };
 
@@ -1014,8 +1020,8 @@ async function getCfg(env) {
   return o;
 }
 
-/* ---------- قصص سِراج ---------- */
-const SCENES = ['home', 'night', 'space', 'school', 'park', 'garden', 'sea', 'desert', 'road', 'kitchen', 'market', 'souq', 'mosque', 'mountain', 'hills', 'fields', 'farm', 'rain', 'oldhome'];   // نفس مشاهد art.js في سِراج
+/* ---------- قصص سراج ---------- */
+const SCENES = ['home', 'night', 'space', 'school', 'park', 'garden', 'sea', 'desert', 'road', 'kitchen', 'market', 'souq', 'mosque', 'mountain', 'hills', 'fields', 'farm', 'rain', 'oldhome'];   // نفس مشاهد art.js في سراج
 function cleanStory(d) {
   d = d || {};
   const pages = (Array.isArray(d.pages) ? d.pages : []).slice(0, 14).map(p => ({ t: clipS(p && p.t, 700), p: clipS(p && p.p, 8) || '✨', s: SCENES.includes(p && p.s) ? p.s : (SCENES.includes(d.scene) ? d.scene : 'home') })).filter(p => p.t);
@@ -1070,7 +1076,7 @@ async function adminRoute(req, url, env) {
     await env.DB.prepare('INSERT INTO appcfg (app, v, updated) VALUES (?, ?, ?) ON CONFLICT(app) DO UPDATE SET v = excluded.v, updated = excluded.updated').bind(app, JSON.stringify(v), now).run();
     return json({ ok: true, msg: v.msg });
   }
-  // قصص سِراج
+  // قصص سراج
   if (p === '/admin/stories' && req.method === 'GET') {
     const rows = (await env.DB.prepare("SELECT id, data, active, created, updated FROM stories WHERE app = 'siraj' ORDER BY created DESC").all()).results || [];
     return json({ stories: rows.map(r => ({ id: r.id, active: !!r.active, created: r.created, updated: r.updated, data: JSON.parse(r.data) })) });
@@ -1153,12 +1159,12 @@ async function buildReport(env) {
     '</tr></table>' +
     '<div style="background:#fff;border-radius:18px;padding:16px;margin-top:12px"><div style="font-weight:700;margin-bottom:8px">كل تطبيق</div><table style="width:100%;border-collapse:collapse"><tr style="color:#6B6590;font-size:12px"><th style="text-align:right;padding:6px">التطبيق</th><th>نشط</th><th>جديد</th><th>مرات الفتح</th><th>مثبّت</th><th>🔔</th></tr>' + rows + '</table></div>' +
     '<div style="background:#fff;border-radius:18px;padding:16px;margin-top:12px;font-size:14px;line-height:1.9">' +
-    (fam ? '<div>👨‍👩‍👧 العائلات: <b>' + fmtN(fam) + '</b>' + (!nb.error ? ' — نَبْض ' + fmtN(nb.families) + (nb.activeFamiliesWeek != null ? ' (' + fmtN(nb.activeFamiliesWeek) + ' نشطة)' : '') : '') + (!sj.error ? ' — سِراج ' + fmtN(sj.families) : '') + '</div>' : '') +
+    (fam ? '<div>👨‍👩‍👧 العائلات: <b>' + fmtN(fam) + '</b>' + (!nb.error ? ' — نبض ' + fmtN(nb.families) + (nb.activeFamiliesWeek != null ? ' (' + fmtN(nb.activeFamiliesWeek) + ' نشطة)' : '') : '') + (!sj.error ? ' — سراج ' + fmtN(sj.families) : '') + '</div>' : '') +
     (verLine ? '<div>🔄 أكثر إصدار مستخدم: ' + esc(verLine) + '</div>' : '') +
     '<div style="margin-top:8px;font-weight:700">🔔 الإشعارات المرسلة هالأسبوع</div>' + (msgList ? '<ul style="margin:4px 0;padding-right:18px">' + msgList + '</ul>' : '<div style="color:#6B6590">ما فيه رسائل عامة (فلق وسهم وخطى).</div>') +
     (schList ? '<div style="margin-top:8px;font-weight:700">⏰ مجدولة قادمة</div><ul style="margin:4px 0;padding-right:18px">' + schList + '</ul>' : '') +
     (pageList ? '<div style="margin-top:8px;font-weight:700">🌐 أكثر صفحات الموقع زيارة</div><ul style="margin:4px 0;padding-right:18px">' + pageList + '</ul>' : '') +
-    ((sj.error || nb.error) ? '<div style="margin-top:8px;color:#D64545">⚠️ تعذّر جلب بيانات ' + [sj.error ? 'سِراج' : '', nb.error ? 'نَبْض' : ''].filter(Boolean).join(' و') + '.</div>' : '') +
+    ((sj.error || nb.error) ? '<div style="margin-top:8px;color:#D64545">⚠️ تعذّر جلب بيانات ' + [sj.error ? 'سراج' : '', nb.error ? 'نبض' : ''].filter(Boolean).join(' و') + '.</div>' : '') +
     '</div>' +
     '<div style="text-align:center;margin:18px 0 6px"><a href="https://admin.wamdarc.com" style="display:inline-block;background:#1A1247;color:#fff;text-decoration:none;border-radius:999px;padding:12px 26px;font-weight:700">افتح لوحة الإدارة</a></div>' +
     '<div style="text-align:center;font-size:11px;color:#8C87A6;margin-top:10px">يوصلك هذا التقرير كل أحد الساعة ٩ صباحاً من push-wamdarc. لإيقافه أضف المتغير REPORT_OFF = 1.</div>' +
@@ -1191,7 +1197,6 @@ async function adminGate(req, db, check) {
   if (!raw) return 'bad';
   const ipb = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode('af:' + (req.headers.get('CF-Connecting-IP') || 'local'))));
   const ip = [...ipb.slice(0, 12)].map((b) => b.toString(16).padStart(2, '0')).join('');
-  await db.prepare('CREATE TABLE IF NOT EXISTS afail (ip TEXT PRIMARY KEY, n INTEGER, last INTEGER, lock INTEGER)').run();
   const rows = (await db.prepare("SELECT ip, n, last, lock FROM afail WHERE ip IN (?, '*')").bind(ip).all()).results || [];
   if (rows.some((r) => r.lock > now)) return 'locked';
   if (await check()) {

@@ -11,99 +11,164 @@
 if (location.protocol === 'http:' && !/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) location.replace('https:' + location.href.slice(5));
 if (window.top !== window.self) { try { window.top.location = window.self.location.href; } catch (e) { document.documentElement.style.display = 'none'; } }
 </script>
-<meta name="theme-color" content="#0E0A2B">
-<title>إدارة ومض آرك</title>
+<meta name="theme-color" content="#F6F5FC" id="tc">
+<script>(function(){var m='day';try{m=localStorage.getItem('wa-admin-theme')==='night'?'night':'day'}catch(e){}document.documentElement.dataset.d=m;if(m==='night')document.getElementById('tc').content='#120C33'})();</script>
+<title>لوحة الإدارة | ومض آرك</title>
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Readex+Pro:wght@300;400;500;600;700&display=swap">
 <style>
-:root{--bg:#111318;--card:#1A1D24;--card2:#22262F;--line:rgba(255,255,255,.08);--text:#F2EFEA;--muted:#9AA0AD;--accent:#FF5A1F;--ok:#5BC08A;--bad:#E5675A;--warn:#E8B04B;color-scheme:dark}
+/* لوحة إدارة ومض آرك — نفس هوية wamdarc.com: نهار (افتراضي) وليل */
+:root{--ar:'Readex Pro',-apple-system,'SF Arabic',system-ui,sans-serif;--en:'Montserrat','Readex Pro',sans-serif;--grad:linear-gradient(120deg,#5A2CD8 0%,#9B52D8 52%,#FF8A2A 100%)}
+html[data-d=day]{
+  --bg:#F6F5FC;--bg2:#EEEBF9;--card:#FFFFFF;--card2:#F4F2FC;--field:#FFFFFF;--tile:#F7F5FD;--line:#E4E0F3;--line2:#D3CDEC;
+  --text:#1B1342;--muted:#625C82;--soft:#3D3566;--accent:#E86E0E;--violet:#6A3DE8;--ok:#1F9D63;--bad:#D93A3A;--warn:#B86E00;
+  --top:rgba(246,245,252,.86);--shadow:0 10px 30px rgba(40,26,110,.07);--bar:#ECE9F6;--grid:#E9E6F4;--dowbar:#D9D3F0;color-scheme:light}
+html[data-d=night]{
+  --bg:#120C33;--bg2:#0D0928;--card:#1B1450;--card2:#241B63;--field:rgba(13,9,40,.6);--tile:rgba(255,255,255,.04);--line:rgba(196,182,255,.14);--line2:rgba(196,182,255,.26);
+  --text:#F3F0FC;--muted:#AAA3D0;--soft:#CFC9EC;--accent:#FF8A2A;--violet:#7B4BF0;--ok:#4CD39A;--bad:#FF6B6B;--warn:#FFB15C;
+  --top:rgba(18,12,51,.82);--shadow:0 10px 30px rgba(0,0,0,.28);--bar:rgba(255,255,255,.08);--grid:rgba(255,255,255,.07);--dowbar:rgba(255,255,255,.2);color-scheme:dark}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,'SF Arabic','Geeza Pro',system-ui,sans-serif;font-size:16px;line-height:1.6}
-main{margin:0 auto;padding:calc(env(safe-area-inset-top) + 20px) 16px 60px}
-header{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-header svg{width:28px;height:28px;flex:none}
-h1{font-size:21px;margin:0;flex:1}
-h1 small{display:block;font-size:12px;color:var(--muted);font-weight:400;letter-spacing:.2em;direction:ltr;text-align:right}
-section{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-top:14px}
-h2{font-size:15px;margin:0 0 10px;color:var(--muted);font-weight:500;display:flex;align-items:center;gap:8px}
+[hidden]{display:none!important}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--ar);font-size:16px;line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased}
+html[data-d=night] body{background-image:radial-gradient(1000px 520px at 85% -10%,rgba(123,75,240,.24),transparent 60%),radial-gradient(800px 480px at -10% 110%,rgba(255,138,42,.08),transparent 60%);background-attachment:fixed}
+main{max-width:1120px;margin:0 auto;padding:0 16px 60px}
+.ltr,[dir=ltr],.pill{font-family:var(--en)}
+html[data-d=day] .on-dark,html[data-d=night] .on-light{display:none!important}
+
+/* البطاقات والعناوين */
+section{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px;margin-top:14px;box-shadow:var(--shadow)}
+h1{font-size:21px;margin:0;font-weight:600}
+h2{font-size:15px;margin:0 0 12px;color:var(--soft);font-weight:500;display:flex;align-items:center;gap:8px}
 h2 .sp{flex:1}
 label{display:block;font-size:14px;color:var(--muted);margin:12px 0 6px}
-input[type=text],input[type=password],textarea{width:100%;font:inherit;font-size:16px;color:var(--text);background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px}
+.note{font-size:13px;color:var(--muted);margin:10px 0 0}
+.tiny{font-size:12px;color:var(--muted)}
+
+/* الحقول والأزرار */
+input[type=text],input[type=password],textarea,select,input[type=datetime-local]{width:100%;font:inherit;font-size:16px;color:var(--text);background:var(--field);border:1px solid var(--line2);border-radius:14px;padding:12px}
+input[type=datetime-local]{font-size:15px;padding:11px 12px}
+select{font-size:15px;padding:10px 12px}
 textarea{min-height:92px;resize:vertical}
-input:focus,textarea:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-button{font:inherit;cursor:pointer;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--text);padding:10px 14px}
-.ghost{background:transparent;color:var(--muted);font-size:13px;padding:6px 10px}
-.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;width:100%;padding:14px;margin-top:16px;font-size:16px}
-.primary:disabled{opacity:.5}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--violet);outline-offset:1px;border-color:transparent}
+button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button{font:inherit;cursor:pointer;border-radius:12px;border:1px solid var(--line2);background:var(--card2);color:var(--text);padding:10px 14px;transition:border-color .2s,background .2s,filter .2s}
+button:hover{border-color:var(--violet)}
+button:disabled{opacity:.55;cursor:default}
+.ghost{background:transparent;border-color:transparent;color:var(--muted);font-size:13px;padding:6px 10px}
+.ghost:hover{color:var(--text);border-color:var(--line2)}
+.primary{background:var(--violet);border:0;color:#fff;font-weight:600;width:100%;padding:14px;margin-top:16px;font-size:16px;border-radius:999px}
+.primary:hover{filter:brightness(1.1)}
+.primary:disabled{opacity:.6}
 .row{display:flex;gap:8px;align-items:center}
 .row input{flex:1}
-.status{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 10px;direction:ltr}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rem{display:flex!important;align-items:center;gap:8px;cursor:pointer;font-size:14px;color:var(--text)}
+.rem input{width:18px;height:18px;accent-color:var(--violet);flex:none}
+.rem small{color:var(--muted);font-size:12px}
+details summary{cursor:pointer;color:var(--muted);font-size:14px;margin-top:14px}
+.msg{margin-top:12px;font-size:14px;padding:10px 12px;border-radius:12px;display:none;white-space:pre-line}
+.msg.on{display:block}
+.msg.ok{background:color-mix(in srgb,var(--ok) 12%,transparent);color:var(--ok)}
+.msg.bad{background:color-mix(in srgb,var(--bad) 11%,transparent);color:var(--bad)}
+.setup{background:color-mix(in srgb,var(--warn) 9%,transparent);border:1px solid color-mix(in srgb,var(--warn) 35%,transparent);color:var(--warn);border-radius:14px;padding:12px 14px;font-size:14px}
+
+/* الشريط العلوي */
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 -16px;padding:calc(env(safe-area-inset-top) + 10px) 16px 10px;background:var(--top);-webkit-backdrop-filter:saturate(1.4) blur(14px);backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid var(--line)}
+.top .tlogo{height:28px;width:auto}
+.top .tlabel{font-size:13px;color:var(--muted);border-inline-start:1px solid var(--line2);padding-inline-start:12px}
+.top .sp{flex:1}
+.status{display:flex;gap:6px;flex-wrap:wrap;margin:0}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 10px;direction:ltr}
 .pill i{width:8px;height:8px;border-radius:50%;background:var(--muted)}
 .pill.ok i{background:var(--ok)}.pill.bad i{background:var(--bad)}.pill.warn i{background:var(--warn)}
+.ib{display:inline-grid;place-items:center;width:36px;height:36px;padding:0;border-radius:999px;border:1px solid var(--line2);background:transparent;color:var(--text)}
+.ib svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.ib .i-sun{display:none} html[data-d=night] .ib .i-sun{display:block} html[data-d=night] .ib .i-moon{display:none}
+#logout{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line2);border-radius:999px;padding:7px 14px;font-size:13.5px;color:var(--text)}
+#logout svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* التبويبات */
+.tabs{display:flex;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:5px;margin-top:14px;position:sticky;top:64px;z-index:5;overflow-x:auto;scrollbar-width:none;box-shadow:var(--shadow)}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:7px;border:0;background:transparent;color:var(--muted);padding:9px 12px;border-radius:13px;font-size:14.5px;white-space:nowrap}
+.tabs button svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.tabs button:hover{color:var(--text)}
+.tabs button.on{background:var(--violet);color:#fff;font-weight:600}
+.narrow{max-width:640px;margin:0 auto}
+
+/* اختيار وقطع */
+.seg{display:inline-flex;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;color:var(--muted);padding:6px 12px;border-radius:9px;font-size:13px}
+.seg button.on{background:var(--violet);color:#fff;font-weight:600}
+.seg.sm button{padding:4px 10px;font-size:12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:6px 12px;border-radius:999px;background:var(--card);color:var(--muted)}
+.chips button i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.chips button.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}
+
+/* الإشعارات */
 .apps{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.app{background:var(--card2);border-radius:14px;padding:12px;border:1px solid var(--line)}
+.app{background:var(--tile);border-radius:14px;padding:12px;border:1px solid var(--line)}
 .app .hd{display:flex;align-items:center;gap:8px}
 .app .hd b{font-size:16px;flex:1}
 .app .hd a{color:var(--muted);font-size:12px;text-decoration:none;direction:ltr}
-.app .big{font-size:28px;font-weight:700;line-height:1.2;margin-top:6px}
+.app .big{font-size:28px;font-weight:600;line-height:1.2;margin-top:6px;font-family:var(--en)}
 .app .sub{font-size:12px;color:var(--muted)}
 .app .ex{font-size:12px;color:var(--muted);margin-top:6px;border-top:1px solid var(--line);padding-top:6px}
-.dot{width:10px;height:10px;border-radius:50%;flex:none}
 .pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
-.pk{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;border-radius:14px;background:var(--card2);border:1.5px solid var(--line);cursor:pointer;user-select:none;text-align:center}
+.pk{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;border-radius:14px;background:var(--tile);border:1.5px solid var(--line);cursor:pointer;user-select:none;text-align:center}
 .pk input{position:absolute;opacity:0}
 .pk b{font-size:15px}
 .pk span{font-size:11px;color:var(--muted)}
-.pk:has(input:checked){border-color:var(--accent);background:rgba(255,90,31,.1)}
+.pk:has(input:checked){border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent)}
 .pk:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
 .pk:has(input:disabled){opacity:.4;cursor:not-allowed}
 .tpl{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
-.tpl button{font-size:13px;padding:7px 11px;border-radius:999px}
-details summary{cursor:pointer;color:var(--muted);font-size:14px;margin-top:14px}
-.preview{margin-top:16px;background:rgba(120,120,140,.22);border-radius:20px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start}
+.tpl button{font-size:13px;padding:7px 12px;border-radius:999px}
+.preview{margin-top:16px;background:var(--bg2);border:1px solid var(--line);border-radius:20px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start}
 .preview .ic{width:38px;height:38px;border-radius:9px;flex:none}
 .preview .t{font-weight:600;font-size:15px}
 .preview .f{font-size:13px;color:var(--muted)}
 .preview .b{font-size:14px;margin-top:2px;white-space:pre-line}
-.note{font-size:13px;color:var(--muted);margin:10px 0 0}
-.msg{margin-top:12px;font-size:14px;padding:10px 12px;border-radius:12px;display:none;white-space:pre-line}
-.msg.on{display:block}.msg.ok{background:rgba(91,192,138,.12);color:var(--ok)}.msg.bad{background:rgba(229,103,90,.12);color:var(--bad)}
 .hist{list-style:none;margin:0;padding:0}
 .hist li{padding:10px 0;border-top:1px solid var(--line);font-size:14px;display:flex;gap:10px;align-items:flex-start}
 .hist li:first-child{border-top:0}
 .hist li .dot{margin-top:7px}
-.hist.log .lb{font-size:13px;color:var(--text);opacity:.8;margin:2px 0;white-space:pre-line}
+.hist li .ghost{flex:none}
+.hist.log .lb{font-size:13px;color:var(--text);opacity:.85;margin:2px 0;white-space:pre-line}
 .hist.log b{font-weight:600}
 .hist span{color:var(--muted);font-size:12px;display:block}
 .links{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.links a{display:block;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:var(--text);text-decoration:none;font-size:14px}
+.links a{display:block;background:var(--tile);border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:var(--text);text-decoration:none;font-size:14px}
+.links a:hover{border-color:var(--violet)}
 .links a span{display:block;color:var(--muted);font-size:12px;direction:ltr;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-[hidden]{display:none!important}
-main{max-width:980px}
-.tabs{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px;margin-top:14px;position:sticky;top:8px;z-index:5;backdrop-filter:blur(10px)}
-.tabs button{flex:1;border:0;background:transparent;color:var(--muted);padding:9px;border-radius:10px;font-size:15px}
-.tabs button.on{background:var(--card2);color:var(--text);font-weight:600}
-.narrow{max-width:620px;margin:0 auto}
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.kpi{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
-.kpi b{display:block;font-size:30px;line-height:1.15;font-variant-numeric:tabular-nums}
+
+/* الأرقام */
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;box-shadow:var(--shadow)}
+.kpi b{display:block;font-size:28px;line-height:1.15;font-variant-numeric:tabular-nums;font-family:var(--en);font-weight:600}
 .kpi span{font-size:13px;color:var(--muted)}
 .kpi.live b{color:var(--ok)}
-.live-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--ok);margin-inline-end:6px;box-shadow:0 0 0 0 rgba(91,192,138,.6);animation:pulse 1.8s infinite}
-@keyframes pulse{70%{box-shadow:0 0 0 9px rgba(91,192,138,0)}100%{box-shadow:0 0 0 0 rgba(91,192,138,0)}}
+.kpi b em,.m4 em{font-style:normal;font-size:11px;font-weight:600;margin-inline-start:6px;vertical-align:middle}
+em.up{color:var(--ok)} em.down{color:var(--bad)}
+.live-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--ok);margin-inline-end:6px;box-shadow:0 0 0 0 color-mix(in srgb,var(--ok) 60%,transparent);animation:pulse 1.8s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 9px transparent}100%{box-shadow:0 0 0 0 transparent}}
 .acards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
-.acard{background:var(--card2);border:1px solid var(--line);border-radius:16px;padding:14px}
+.acard{background:var(--tile);border:1px solid var(--line);border-radius:16px;padding:14px;cursor:pointer;transition:opacity .2s,border-color .2s}
+.acard:hover{border-color:var(--line2)}
+.acard.dim{opacity:.38}
 .acard .hd{display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .acard .hd b{flex:1;font-size:17px}
 .acard .hd em{font-style:normal;font-size:12px;color:var(--ok);display:flex;align-items:center}
 .acard .hd em.off{color:var(--muted)}
 .m4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center}
-.m4 div{background:rgba(255,255,255,.03);border-radius:10px;padding:6px 2px}
-.m4 b{display:block;font-size:19px;font-variant-numeric:tabular-nums}
+.m4 div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px 2px}
+.m4 b{display:block;font-size:18px;font-variant-numeric:tabular-nums;font-family:var(--en);font-weight:600}
 .m4 span{font-size:11px;color:var(--muted)}
-.bar{height:8px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden;display:flex;margin-top:4px}
+.bar{height:8px;border-radius:99px;background:var(--bar);overflow:hidden;display:flex;margin-top:4px}
 .bar i{display:block;height:100%}
 .kv{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-top:10px}
 .kv b{color:var(--text);font-weight:500}
@@ -111,47 +176,29 @@ main{max-width:980px}
 .legend span{display:inline-flex;align-items:center;gap:5px}
 .legend i{width:9px;height:9px;border-radius:3px;display:inline-block}
 .chart{width:100%;height:auto;display:block;margin-top:6px}
-.chart text{fill:var(--muted);font-size:10px;font-family:inherit}
+.chart text{fill:var(--muted);font-size:10px;font-family:var(--en)}
 .feed{list-style:none;margin:0;padding:0}
 .feed li{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:14px}
 .feed li:first-child{border-top:0}
 .feed .who{flex:1;min-width:0}
 .feed .who small{display:block;color:var(--muted);font-size:12px}
-.feed .tag{font-size:11px;border-radius:999px;padding:2px 8px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
-.feed .tag.inst{color:var(--ok);border-color:rgba(91,192,138,.35)}
+.feed .tag{font-size:11px;border-radius:999px;padding:2px 8px;border:1px solid var(--line2);color:var(--muted);white-space:nowrap}
+.feed .tag.inst{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 40%,transparent)}
 .feed .when{font-size:12px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
 .feed .when.now{color:var(--ok)}
+.feed .cm{font-family:var(--en);font-size:11px}
 .pages{list-style:none;margin:0;padding:0}
 .pages li{display:grid;grid-template-columns:1fr auto;gap:8px;font-size:14px;padding:6px 0}
 .pages li span{direction:ltr;text-align:right;color:var(--muted)}
 .pages .bar{grid-column:1/-1;margin-top:0}
-.cols{display:grid;grid-template-columns:1.4fr 1fr;gap:14px}
-.cols section{margin-top:0}
-.setup{background:rgba(232,176,75,.1);border:1px solid rgba(232,176,75,.35);color:var(--warn);border-radius:14px;padding:12px 14px;font-size:14px}
-@media (max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}.cols{grid-template-columns:1fr}}
 .toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:14px 0 10px}
 .toolbar .sp{flex:1}
-.tiny{font-size:12px;color:var(--muted)}
-.seg{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:3px;gap:2px}
-.seg button{border:0;background:transparent;color:var(--muted);padding:6px 12px;border-radius:9px;font-size:13px}
-.seg button.on{background:var(--card2);color:var(--text);font-weight:600}
-.seg.sm button{padding:4px 10px;font-size:12px}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-.chips button{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:6px 11px;border-radius:999px;background:var(--card);color:var(--muted)}
-.chips button i{width:8px;height:8px;border-radius:50%;display:inline-block}
-.chips button.on{background:var(--text);color:var(--bg);border-color:var(--text)}
-.kpis{grid-template-columns:repeat(6,1fr)!important}
-.kpi b em,.m4 em{font-style:normal;font-size:11px;font-weight:600;margin-inline-start:6px;vertical-align:middle}
-em.up{color:var(--ok)} em.down{color:var(--bad)}
-.acard{cursor:pointer;transition:opacity .2s,border-color .2s}
-.acard:hover{border-color:rgba(255,255,255,.2)}
-.acard.dim{opacity:.38}
+.cols{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-top:14px}
+.cols section,.cols3 section{margin-top:0}
 .cols3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
-.cols3 section{margin-top:0}
-.cols{margin-top:14px}
 .dow{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;height:150px;align-items:end;text-align:center}
 .dow div{display:flex;flex-direction:column;justify-content:flex-end;height:100%;gap:3px}
-.dow i{display:block;background:rgba(255,255,255,.18);border-radius:6px 6px 3px 3px;min-height:4px}
+.dow i{display:block;background:var(--dowbar);border-radius:6px 6px 3px 3px;min-height:4px}
 .dow b{font-size:12px} .dow span{font-size:11px;color:var(--muted)}
 .funnel div{margin-bottom:10px}
 .funnel span{font-size:13px;color:var(--muted)} .funnel b{float:left;font-size:14px} .funnel small{color:var(--muted);font-weight:400}
@@ -159,155 +206,143 @@ em.up{color:var(--ok)} em.down{color:var(--bad)}
 .apppanel{border-top:3px solid var(--c)}
 .apppanel h2 a{color:var(--muted);text-decoration:none}
 .mini{display:grid;grid-template-columns:repeat(14,1fr);gap:4px;height:70px;align-items:end;margin-top:12px}
-.mini div{display:flex;flex-direction:column-reverse;height:100%;background:rgba(255,255,255,.03);border-radius:4px;overflow:hidden}
+.mini div{display:flex;flex-direction:column-reverse;height:100%;background:var(--tile);border-radius:4px;overflow:hidden}
 .mini i{display:block;width:100%}
-@media (max-width:1000px){.kpis{grid-template-columns:repeat(3,1fr)!important}.cols3{grid-template-columns:1fr}}
-@media (max-width:560px){.kpis{grid-template-columns:repeat(2,1fr)!important}.toolbar .sp{display:none}}
-
-@media (max-width:420px){.pick{grid-template-columns:repeat(2,1fr)}}
-
 
 /* إدارة التطبيقات */
-select{font:inherit;font-size:15px;color:var(--text);background:rgba(14,10,43,.55);border:1px solid var(--line);border-radius:12px;padding:10px 12px;width:100%}
-input[type=datetime-local]{width:100%;font:inherit;font-size:15px;color:var(--text);background:rgba(14,10,43,.55);border:1px solid var(--line);border-radius:14px;padding:11px 12px;color-scheme:dark}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .cfprev{margin-top:16px}
-.cfprev .pv{position:relative;color:#fff;border-radius:20px;padding:14px 16px;box-shadow:0 18px 50px rgba(10,6,40,.45);margin-bottom:6px}
+.cfprev .pv{position:relative;color:#fff;border-radius:20px;padding:14px 16px;box-shadow:0 18px 50px rgba(10,6,40,.3);margin-bottom:6px}
 .cfprev .pv b{display:block;font-size:16px;padding-inline-end:34px}.cfprev .pv p{margin:2px 0 0;opacity:.92;white-space:pre-line}
 .cfprev .pv .x{position:absolute;top:8px;inset-inline-end:8px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-items:center}
 .cfprev .pv .btn{display:inline-block;margin-top:10px;background:#fff;color:#1A1247;font-weight:700;border-radius:999px;padding:6px 16px;font-size:14px}
 .sted{margin-top:14px;border-top:1px solid var(--line);padding-top:14px}
 .sted h3{margin:0 0 4px;font-size:17px}
-.stpg{background:rgba(14,10,43,.4);border:1px solid var(--line);border-radius:14px;padding:10px;margin-top:8px}
+.stpg{background:var(--tile);border:1px solid var(--line);border-radius:14px;padding:10px;margin-top:8px}
 .stpg .pe{width:64px;flex:none;text-align:center;font-size:20px;padding:8px}
 .stpg select{flex:1}
 .stpg textarea{margin-top:8px;min-height:70px}
-.stprev{margin-top:14px;background:rgba(255,255,255,.04);border-radius:14px;padding:12px 14px;font-size:14px}
+.stprev{margin-top:14px;background:var(--tile);border-radius:14px;padding:12px 14px;font-size:14px}
 .stprev:empty{display:none}
-.stprev h4{margin:6px 0;font-size:17px}.stprev p{margin:6px 0;color:var(--soft,#C6C0E2)}
-.repview{margin-top:14px;border-radius:18px;overflow:hidden;background:#EEEAF8;color:#1A1247}
-.hist li .ghost{flex:none}
-@media (max-width:560px){.row2{grid-template-columns:1fr}}
-/* ===== هوية ومض آرك (v6) ===== */
-:root{--bg:#0E0A2B;--card:#1A1247;--card2:#241A5A;--line:rgba(154,114,255,.16);--text:#F3F1FB;--muted:#9A94BC;--accent:#FF8A2A;--violet:#7B4BF0;--ok:#4CD39A;--bad:#FF6B6B;--warn:#FFB15C;--grad:linear-gradient(120deg,#5A2CD8 0%,#9B52D8 48%,#FF8A2A 100%)}
-body{font-family:'Readex Pro',-apple-system,'SF Arabic',system-ui,sans-serif;background:var(--bg);background-image:radial-gradient(1000px 520px at 85% -10%,rgba(123,75,240,.28),transparent 60%),radial-gradient(800px 480px at -10% 110%,rgba(255,138,42,.10),transparent 60%);background-attachment:fixed;min-height:100vh}
-main{max-width:1120px}
-.ltr,[dir=ltr],.pill{font-family:'Montserrat','Readex Pro',sans-serif}
-section{background:linear-gradient(180deg,rgba(36,26,90,.55),rgba(26,18,71,.55));border:1px solid var(--line);border-radius:22px;padding:18px;box-shadow:0 10px 30px rgba(5,3,20,.25)}
-h2{color:var(--soft,#C6C0E2);font-size:15px;font-weight:500}
-input[type=text],input[type=password],textarea{background:rgba(14,10,43,.55);border-color:var(--line);border-radius:14px}
-input:focus,textarea:focus{outline:2px solid var(--violet);outline-offset:1px;border-color:transparent}
-button{border-color:var(--line);background:rgba(36,26,90,.7)}
-button:hover{border-color:rgba(154,114,255,.45)}
-.ghost{background:transparent;border-color:transparent}
-.ghost:hover{color:var(--text);border-color:var(--line)}
-.primary{background:var(--grad);border:0;border-radius:999px;box-shadow:0 10px 30px rgba(123,75,240,.35);font-weight:600;letter-spacing:.01em}
-.primary:hover{filter:brightness(1.08)}
-/* الشريط العلوي */
-.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 -16px;border-radius:0 0 20px 20px;padding:calc(env(safe-area-inset-top) + 10px) 16px 10px;background:rgba(14,10,43,.78);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid var(--line)}
-.top .tlogo{height:36px;width:auto}
-.top .tlabel{font-size:13px;color:var(--muted);border-inline-start:1px solid var(--line);padding-inline-start:12px}
-.top .sp{flex:1}
-.top .status{margin:0}
-.pill{background:rgba(14,10,43,.6);border-color:var(--line)}
-main{padding-top:0}
-.tabs{top:68px;background:rgba(26,18,71,.85);border-color:var(--line);border-radius:16px;overflow-x:auto;scrollbar-width:none}
-.tabs::-webkit-scrollbar{display:none}
-.tabs button{white-space:nowrap;font-size:14.5px}
-.tabs button.on{background:var(--grad);color:#fff;box-shadow:0 6px 18px rgba(123,75,240,.35)}
-.seg button.on{background:var(--violet);color:#fff}
-.chips button.on{background:var(--text);color:var(--bg)}
-.kpi{background:linear-gradient(160deg,rgba(36,26,90,.9),rgba(26,18,71,.7));border-color:var(--line);border-radius:18px}
-.kpi b{font-family:'Montserrat','Readex Pro',sans-serif;font-weight:600}
-.acard,.app,.pk{background:rgba(36,26,90,.55);border-color:var(--line)}
-.pk:has(input:checked){border-color:var(--accent);background:rgba(255,138,42,.10)}
-.setup{background:rgba(255,177,92,.08);border-color:rgba(255,177,92,.35)}
+.stprev h4{margin:6px 0;font-size:17px}.stprev p{margin:6px 0;color:var(--soft)}
+.repview{margin-top:14px;border-radius:18px;overflow:hidden;background:#EEEAF8;color:#1A1247;border:1px solid var(--line)}
+
 /* صفحة الدخول */
-.login{background:none;border:0;box-shadow:none;min-height:100vh;min-height:100dvh;margin:0 -16px;padding:40px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;position:relative}
-.login::before{content:"";position:fixed;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(14,10,43,.35),rgba(14,10,43,.92) 70%),url(assets/hero-sm.webp) center top/cover no-repeat}
-.lcard{width:100%;max-width:420px;box-sizing:border-box;background:rgba(26,18,71,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(154,114,255,.28);border-radius:28px;padding:34px 26px 26px;box-shadow:0 30px 80px rgba(5,3,20,.55)}
-.llogo{display:block;width:100%;max-width:300px;height:auto;margin:0 auto 22px}
-.lcard h1{font-size:24px;text-align:center;margin:0}
-.lsub{text-align:center;color:var(--muted);font-size:14px;margin:6px 0 18px}
-.lcard input[type=password]{text-align:center;letter-spacing:.1em;padding:14px}
-.rem{display:flex!important;align-items:center;gap:8px;cursor:pointer;font-size:13px}
-.rem input{width:18px;height:18px;accent-color:var(--violet)}
+.login{background:none;border:0;box-shadow:none;min-height:100vh;min-height:100dvh;margin:0 -16px;padding:40px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;position:relative;overflow:hidden;isolation:isolate}
+.larc{position:absolute;inset:auto -15% -40% -15%;width:130%;height:62%;z-index:-1;overflow:visible}
+.lfoot{position:relative;z-index:1;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 6px 4px 14px}
+html[dir=rtl] .lfoot{padding:4px 14px 4px 6px}
+.larc path{fill:none;stroke:url(#lag);stroke-width:90;stroke-linecap:round;opacity:.9}
+html[data-d=night] .larc path{stroke-width:3;opacity:1;filter:drop-shadow(0 0 18px rgba(155,82,216,.8))}
+html[data-d=night] .login::before{content:"";position:absolute;inset:0;z-index:-2;opacity:.5;background-image:radial-gradient(1px 1px at 12% 18%,#fff,transparent),radial-gradient(1px 1px at 26% 62%,#fff,transparent),radial-gradient(1.5px 1.5px at 38% 28%,#fff,transparent),radial-gradient(1px 1px at 52% 12%,#fff,transparent),radial-gradient(1px 1px at 64% 44%,#fff,transparent),radial-gradient(1.5px 1.5px at 77% 20%,#fff,transparent),radial-gradient(1px 1px at 88% 58%,#fff,transparent),radial-gradient(1px 1px at 92% 8%,#fff,transparent),radial-gradient(1px 1px at 6% 46%,#fff,transparent)}
+.lcard{width:100%;max-width:420px;background:var(--card);border:1px solid var(--line);border-radius:28px;padding:34px 28px 26px;box-shadow:0 30px 80px rgba(30,20,90,.16)}
+html[data-d=night] .lcard{background:rgba(27,20,80,.78);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);box-shadow:0 30px 80px rgba(0,0,0,.45)}
+.llogo{display:block;height:34px;width:auto;margin:0 auto 26px}
+.lcard h1{font-size:25px;text-align:center}
+.lsub{text-align:center;color:var(--muted);font-size:14px;margin:6px 0 20px}
+.keyf{position:relative}
+.keyf input{text-align:center;letter-spacing:.08em;padding:14px 48px;font-family:var(--en)}
+.eye{position:absolute;top:50%;inset-inline-end:6px;transform:translateY(-50%);width:38px;height:38px;padding:0;display:grid;place-items:center;border:0;border-radius:10px;background:transparent;color:var(--muted)}
+.eye:hover{color:var(--text)}
+.eye svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.eye .i-hide{display:none} .eye[aria-pressed=true] .i-show{display:none} .eye[aria-pressed=true] .i-hide{display:block}
+.caps{margin:8px 0 0;font-size:12.5px;color:var(--warn)}
+.lcard .rem{margin-top:14px}
 .lcard .primary{margin-top:18px}
-.lfoot{font-size:12px;color:var(--muted);letter-spacing:.06em}
+.lnote{display:flex;gap:8px;align-items:flex-start;margin-top:16px;font-size:12.5px;color:var(--muted);line-height:1.7}
+.lnote svg{flex:none;width:16px;height:16px;margin-top:3px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.lfoot{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted);letter-spacing:.04em}
+.lfoot .ib{width:30px;height:30px}.lfoot .ib svg{width:15px;height:15px}
+
 /* نظرة عامة */
-.hello{display:flex;align-items:center;gap:10px;margin:18px 2px 4px}
-.hello h2{font-size:22px;color:var(--text);margin:0;font-weight:600}
+.hello{display:flex;align-items:center;gap:10px;margin:22px 2px 4px}
+.hello h2{font-size:23px;color:var(--text);margin:0;font-weight:600}
 .hk{margin-top:12px}
 .health{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
-.hc{display:flex;align-items:center;gap:10px;background:rgba(14,10,43,.45);border:1px solid var(--line);border-radius:14px;padding:10px 12px;color:var(--text);text-decoration:none}
+.hc{display:flex;align-items:center;gap:10px;background:var(--tile);border:1px solid var(--line);border-radius:14px;padding:10px 12px;color:var(--text);text-decoration:none}
+.hc:hover{border-color:var(--line2)}
 .hc img{width:34px;height:34px;border-radius:9px;flex:none}
-.hc .si{width:34px;height:34px;border-radius:9px;flex:none;display:grid;place-items:center;background:rgba(123,75,240,.18);font-size:16px}
+.hc .si{width:34px;height:34px;border-radius:9px;flex:none;display:grid;place-items:center;background:color-mix(in srgb,var(--violet) 14%,transparent);font-size:16px}
 .hc div{flex:1;min-width:0}
 .hc b{display:block;font-size:14px;font-weight:500}
-.hc small{display:block;font-size:11.5px;color:var(--muted);direction:ltr;text-align:right;font-family:'Montserrat',sans-serif}
+.hc small{display:block;font-size:11.5px;color:var(--muted);direction:ltr;text-align:right;font-family:var(--en)}
 .hc i{width:9px;height:9px;border-radius:50%;background:var(--muted);flex:none}
-.hc i.ok{background:var(--ok);box-shadow:0 0 0 4px rgba(76,211,154,.15)}.hc i.bad{background:var(--bad);box-shadow:0 0 0 4px rgba(255,107,107,.15)}
+.hc i.ok{background:var(--ok);box-shadow:0 0 0 4px color-mix(in srgb,var(--ok) 16%,transparent)}.hc i.bad{background:var(--bad);box-shadow:0 0 0 4px color-mix(in srgb,var(--bad) 16%,transparent)}
 .alert{display:flex;gap:10px;align-items:flex-start;border-radius:14px;padding:11px 14px;font-size:14px;margin-top:10px;border:1px solid}
-.alert.bad{background:rgba(255,107,107,.08);border-color:rgba(255,107,107,.35);color:#FFB3B3}
-.alert.warn{background:rgba(255,177,92,.08);border-color:rgba(255,177,92,.35);color:var(--warn)}
-.alert.ok{background:rgba(76,211,154,.08);border-color:rgba(76,211,154,.3);color:var(--ok)}
+.alert.bad{background:color-mix(in srgb,var(--bad) 8%,transparent);border-color:color-mix(in srgb,var(--bad) 35%,transparent);color:var(--bad)}
+.alert.warn{background:color-mix(in srgb,var(--warn) 8%,transparent);border-color:color-mix(in srgb,var(--warn) 35%,transparent);color:var(--warn)}
+.alert.ok{background:color-mix(in srgb,var(--ok) 8%,transparent);border-color:color-mix(in srgb,var(--ok) 30%,transparent);color:var(--ok)}
 .quick{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.quick button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:start;padding:14px;border-radius:16px;font-size:20px;background:rgba(14,10,43,.45)}
+.quick button{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:start;padding:14px;border-radius:16px;font-size:20px;background:var(--tile);border-color:var(--line)}
+.quick button:hover{border-color:var(--violet)}
 .quick b{font-size:14.5px;font-weight:600}.quick span{font-size:12px;color:var(--muted)}
-.feed .cm{font-family:'Montserrat',sans-serif;font-size:11px}
+
 /* التطبيقات */
 .mapps{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;margin-top:14px}
 .ma{margin-top:0;border-top:3px solid var(--c)}
 .ma .hd{display:flex;align-items:center;gap:12px}
 .ma .hd img{width:52px;height:52px;border-radius:14px}
 .ma .hd b{font-size:19px;display:block}
-.ma .hd a{font-size:12.5px;color:var(--muted);text-decoration:none;font-family:'Montserrat',sans-serif}
+.ma .hd a{font-size:12.5px;color:var(--muted);text-decoration:none;font-family:var(--en)}
 .ma .vers{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;text-align:center}
-.ma .vers div{background:rgba(14,10,43,.45);border-radius:12px;padding:8px 4px}
-.ma .vers b{display:block;font-size:16px;font-family:'Montserrat',sans-serif;font-weight:600}
+.ma .vers div{background:var(--tile);border:1px solid var(--line);border-radius:12px;padding:8px 4px}
+.ma .vers b{display:block;font-size:16px;font-family:var(--en);font-weight:600}
 .ma .vers span{font-size:11px;color:var(--muted)}
-.ma .last{font-size:13px;color:var(--soft,#C6C0E2);margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+.ma .last{font-size:13px;color:var(--soft);margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
 .ma .last small{display:block;color:var(--muted);font-size:11.5px}
 .ma .qr{display:flex;gap:12px;align-items:center;margin-top:12px}
-.ma .qr img{width:92px;height:92px;background:#fff;border-radius:12px;padding:6px}
+.ma .qr img{width:92px;height:92px;background:#fff;border-radius:12px;padding:6px;border:1px solid var(--line)}
 .ma .acts{display:flex;flex-wrap:wrap;gap:6px;flex:1}
-.ma .acts button,.ma .acts a{font-size:12.5px;padding:7px 11px;border-radius:999px;border:1px solid var(--line);background:rgba(36,26,90,.7);color:var(--text);text-decoration:none;font-family:inherit}
+.ma .acts button,.ma .acts a{font-size:12.5px;padding:7px 11px;border-radius:999px;border:1px solid var(--line2);background:var(--card2);color:var(--text);text-decoration:none;font-family:inherit}
+
+@media (max-width:1000px){.kpis{grid-template-columns:repeat(3,1fr)}.cols3{grid-template-columns:1fr}}
+@media (max-width:760px){.cols{grid-template-columns:1fr}}
 @media (max-width:640px){
   .top .tlabel{display:none}.top .status{order:5;width:100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.top .status .pill{flex:none}
-  .top .tlogo{height:30px}
+  .top .tlogo{height:24px}
+  #logout span{display:none}
   .tabs{top:auto;position:static}
+  .tabs button{flex:none}
   .mapps{grid-template-columns:1fr}
   .hello h2{font-size:19px}
 }
+@media (max-width:560px){.kpis{grid-template-columns:repeat(2,1fr)}.toolbar .sp{display:none}.row2{grid-template-columns:1fr}}
+@media (max-width:420px){.pick{grid-template-columns:repeat(2,1fr)}.apps,.links{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
 <main>
   <header class="top" id="top" hidden>
-    <img class="tlogo" src="assets/logo-compact-on-dark.svg" alt="WAMD ARC | ومض آرك">
+    <img class="tlogo on-light" src="assets/logo-horizontal-on-light.svg" alt="WAMD ARC | ومض آرك" height="28"><img class="tlogo on-dark" src="assets/logo-horizontal-on-dark.svg" alt="WAMD ARC | ومض آرك" height="28">
     <span class="tlabel">لوحة الإدارة</span>
     <span class="sp"></span>
     <div class="status" id="status"></div>
-    <button class="ghost" id="logout" hidden>خروج ⎋</button>
+    <button class="ib themeBtn" type="button" aria-label="الوضع الداكن"><svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.6A8.5 8.5 0 0 1 9.4 4a8.5 8.5 0 1 0 10.6 10.6z"/></svg><svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></svg></button>
+    <button class="ghost" id="logout" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>قفل اللوحة</span></button>
   </header>
 
   <section id="login" class="login">
+    <svg class="larc" viewBox="0 0 1200 600" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="lag" x1="0" x2="1"><stop offset="0" stop-color="#6A3DE8"/><stop offset=".55" stop-color="#9B52D8"/><stop offset="1" stop-color="#FF8A2A"/></linearGradient></defs><path d="M-40 680 C 160 40, 1040 40, 1240 680"/></svg>
     <div class="lcard">
-      <img class="llogo" src="assets/logo-compact-on-dark.svg" alt="WAMD ARC | ومض آرك">
+      <img class="llogo on-light" src="assets/logo-horizontal-on-light.svg" alt="WAMD ARC | ومض آرك" height="34"><img class="llogo on-dark" src="assets/logo-horizontal-on-dark.svg" alt="WAMD ARC | ومض آرك" height="34">
       <h1>لوحة الإدارة</h1>
-      <p class="lsub">إحصائيات التطبيقات الخمسة، الإشعارات، والسجلات — في مكان واحد.</p>
+      <p class="lsub">الإحصائيات والإشعارات والرسائل لكل تطبيقات ومض آرك في مكان واحد.</p>
       <label for="key">مفتاح الإدارة</label>
-      <input type="password" id="key" autocomplete="current-password" placeholder="ADMIN_KEY" dir="ltr" aria-label="مفتاح الإدارة">
-      <label class="rem"><input type="checkbox" id="remember"> تذكّرني على هذا الجهاز (لجهازك الشخصي فقط)</label>
+      <div class="keyf">
+        <input type="password" id="key" autocomplete="current-password" placeholder="ADMIN_KEY" dir="ltr" spellcheck="false" autocapitalize="off" autocorrect="off">
+        <button class="eye" id="eye" type="button" aria-label="إظهار المفتاح" aria-pressed="false"><svg class="i-show" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6.5 9.5-6.5S21.5 12 21.5 12s-3.5 6.5-9.5 6.5S2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></svg><svg class="i-hide" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10.6 5.6A9.9 9.9 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-3.2 3.9M6.4 6.9C3.9 8.6 2.5 12 2.5 12s3.5 6.5 9.5 6.5a9.6 9.6 0 0 0 4.3-1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg></button>
+      </div>
+      <p class="caps" id="caps" hidden>⇪ زر الأحرف الكبيرة شغّال (Caps Lock)</p>
+      <label class="rem"><input type="checkbox" id="remember"> تذكّر هذا الجهاز <small>(جهازك الشخصي فقط)</small></label>
       <button class="primary" id="keyGo">دخول</button>
-      <div class="msg" id="loginMsg"></div>
-      <p class="note">بدون «تذكّرني» المفتاح ينمسح أول ما تقفل التبويب، وبعد ٣٠ دقيقة بدون استخدام.</p>
+      <div class="msg" id="loginMsg" role="alert"></div>
+      <p class="lnote"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>بدون «تذكّر هذا الجهاز» يُمسح المفتاح عند إغلاق التبويب، وتُقفل اللوحة تلقائياً بعد ٣٠ دقيقة بدون استخدام. والمحاولات الخاطئة الكثيرة تقفل الدخول مؤقتاً.</span></p>
     </div>
-    <p class="lfoot">WAMD ARC · <span dir="ltr">admin.wamdarc.com</span></p>
+    <div class="lfoot"><button class="ib themeBtn" type="button" aria-label="الوضع الداكن"><svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.6A8.5 8.5 0 0 1 9.4 4a8.5 8.5 0 1 0 10.6 10.6z"/></svg><svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></svg></button><span>WAMD ARC · <span dir="ltr">admin.wamdarc.com</span></span></div>
   </section>
 
   <div id="panel" hidden>
-    <nav class="tabs" role="tablist"><button class="on" data-tab="home" role="tab">🏠 نظرة عامة</button><button data-tab="apps" role="tab">📱 التطبيقات</button><button data-tab="manage" role="tab">🛠️ إدارة التطبيقات</button><button data-tab="stats" role="tab">📊 الإحصائيات</button><button data-tab="notif" role="tab">🔔 الإشعارات</button><button data-tab="logs" role="tab">🗂️ السجلات</button></nav>
+    <nav class="tabs" role="tablist"><button class="on" data-tab="home" role="tab"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 10.5L12 4l8.5 6.5V20a1 1 0 0 1-1 1h-5v-6h-5v6h-5a1 1 0 0 1-1-1z"/></svg>نظرة عامة</button><button data-tab="apps" role="tab"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.8"/></svg>التطبيقات</button><button data-tab="manage" role="tab"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>إدارة التطبيقات</button><button data-tab="stats" role="tab"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>الإحصائيات</button><button data-tab="notif" role="tab"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/></svg>الإشعارات</button><button data-tab="logs" role="tab"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M9 10h6M9 14h6M9 18h4"/></svg>السجلات</button></nav>
     <div id="bkNag" class="setup" hidden style="margin-top:14px;cursor:pointer"></div>
 
     <div id="v-home">
@@ -368,8 +403,8 @@ main{padding-top:0}
       </section>
 
       <section id="storiesBox" hidden>
-        <h2>📚 قصص سِراج من اللوحة<span class="sp"></span><button class="ghost" id="stNew">+ قصة جديدة</button></h2>
-        <p class="note" style="margin-top:0">القصص اللي تضيفها هنا تنضاف لمكتبة سِراج عند كل العائلات، وتدخل في دور «قصة الليلة». ولو حددت تاريخ، تصير قصة ذاك اليوم للجميع.</p>
+        <h2>📚 قصص سراج من اللوحة<span class="sp"></span><button class="ghost" id="stNew">+ قصة جديدة</button></h2>
+        <p class="note" style="margin-top:0">القصص اللي تضيفها هنا تنضاف لمكتبة سراج عند كل العائلات، وتدخل في دور «قصة الليلة». ولو حددت تاريخ، تصير قصة ذاك اليوم للجميع.</p>
         <ul class="hist" id="stList"></ul>
         <div id="stEd" hidden class="sted">
           <h3 id="stEdT">قصة جديدة</h3>
@@ -431,11 +466,11 @@ main{padding-top:0}
         <section><h2>الأجهزة واللغة</h2><div id="mix"></div></section>
       </div>
       <div class="cols">
-        <section class="apppanel" style="--c:#3C5BD6"><h2><span class="dot" style="background:#3C5BD6"></span>نَبْض<span class="sp"></span><a class="tiny" href="https://nabd.wamdarc.com" target="_blank" rel="noopener">↗</a></h2><div id="nabdP"></div></section>
-        <section class="apppanel" style="--c:#8E44C9"><h2><span class="dot" style="background:#8E44C9"></span>سِراج<span class="sp"></span><a class="tiny" href="https://siraj.wamdarc.com" target="_blank" rel="noopener">↗</a></h2><div id="sirajP"></div></section>
+        <section class="apppanel" style="--c:#3C6FE0"><h2><span class="dot" style="background:#3C6FE0"></span>نبض<span class="sp"></span><a class="tiny" href="https://nabd.wamdarc.com" target="_blank" rel="noopener">↗</a></h2><div id="nabdP"></div></section>
+        <section class="apppanel" style="--c:#7C4DEB"><h2><span class="dot" style="background:#7C4DEB"></span>سراج<span class="sp"></span><a class="tiny" href="https://siraj.wamdarc.com" target="_blank" rel="noopener">↗</a></h2><div id="sirajP"></div></section>
       </div>
       <div class="cols">
-        <section class="apppanel" style="--c:#12897F"><h2><span class="dot" style="background:#12897F"></span>حَرف<span class="sp"></span><a class="tiny" href="https://harf.wamdarc.com" target="_blank" rel="noopener">↗</a></h2><div id="harfP"></div></section>
+        <section class="apppanel" style="--c:#12897C"><h2><span class="dot" style="background:#12897C"></span>حرف<span class="sp"></span><a class="tiny" href="https://harf.wamdarc.com" target="_blank" rel="noopener">↗</a></h2><div id="harfP"></div></section>
       </div>
       <div class="cols">
         <section>
@@ -476,7 +511,7 @@ main{padding-top:0}
       <div class="pick" id="pick"></div>
       <label>قوالب جاهزة</label>
       <div class="tpl">
-        <button data-tpl="fitr">عيد الفطر</button><button data-tpl="adha">عيد الأضحى</button><button data-tpl="ramadan">رمضان</button><button data-tpl="national">اليوم الوطني</button><button data-tpl="update">تحديث جديد</button><button data-tpl="stories">قصص جديدة (سِراج)</button>
+        <button data-tpl="fitr">عيد الفطر</button><button data-tpl="adha">عيد الأضحى</button><button data-tpl="ramadan">رمضان</button><button data-tpl="national">اليوم الوطني</button><button data-tpl="update">تحديث جديد</button><button data-tpl="stories">قصص جديدة (سراج)</button>
       </div>
       <label for="arT">العنوان</label>
       <input type="text" id="arT" maxlength="80" placeholder="مثلاً: عيدكم مبارك">
@@ -487,7 +522,7 @@ main{padding-top:0}
         <label for="enT">Title</label><input type="text" id="enT" maxlength="80" dir="ltr">
         <label for="enB">Message</label><textarea id="enB" maxlength="300" dir="ltr"></textarea>
       </details>
-      <div class="preview" aria-hidden="true"><div class="ic" id="pvI"></div><div><div class="t" id="pvT">العنوان</div><div class="f" id="pvF">from فَلَق</div><div class="b" id="pvB">النص</div></div></div>
+      <div class="preview" aria-hidden="true"><div class="ic" id="pvI"></div><div><div class="t" id="pvT">العنوان</div><div class="f" id="pvF">from فلق</div><div class="b" id="pvB">النص</div></div></div>
       <label>وقت الإرسال</label>
       <div class="seg" id="when"><button data-w="now" class="on">الآن</button><button data-w="later">جدولة لوقت لاحق ⏰</button></div>
       <div id="whenBox" hidden style="margin-top:10px">
@@ -516,7 +551,7 @@ main{padding-top:0}
         <a href="https://github.com/bsshfi?tab=repositories" target="_blank" rel="noopener">GitHub<span>github.com/bsshfi</span></a>
         <a href="https://wamdarc.com" target="_blank" rel="noopener">الموقع<span>wamdarc.com</span></a>
         <a href="https://push-wamdarc.bsshfi.workers.dev/" target="_blank" rel="noopener">خادم الإشعارات<span>push-wamdarc</span></a>
-        <a href="https://nabd-api.bsshfi.workers.dev/" target="_blank" rel="noopener">خادم نَبْض<span>nabd-api</span></a>
+        <a href="https://nabd-api.bsshfi.workers.dev/" target="_blank" rel="noopener">خادم نبض<span>nabd-api</span></a>
       </div>
     </section>
     </div>
@@ -531,12 +566,12 @@ main{padding-top:0}
   var NABD = 'https://nabd-api.bsshfi.workers.dev';
   var HARF = 'https://harf-api.bsshfi.workers.dev';
   var APPS = [
-    { id: 'falaq', name: 'فَلَق', url: 'falaq.wamdarc.com', color: '#E0A060', srv: 'push' },
-    { id: 'sahm', name: 'سهم', url: 'sahm.wamdarc.com', color: '#5BC08A', srv: 'push' },
-    { id: 'khuta', name: 'خُطى', url: 'khuta.wamdarc.com', color: '#4DB8F0', srv: 'push' },
-    { id: 'siraj', name: 'سِراج', url: 'siraj.wamdarc.com', color: '#8E44C9', srv: 'siraj' },
-    { id: 'nabd', name: 'نَبْض', url: 'nabd.wamdarc.com', color: '#3C5BD6', srv: 'nabd' },
-    { id: 'harf', name: 'حَرف', url: 'harf.wamdarc.com', color: '#12897F', srv: 'harf', nopush: true }   // لعبة بدون إشعارات
+    { id: 'falaq', name: 'فلق', url: 'falaq.wamdarc.com', color: '#D9A441', srv: 'push' },
+    { id: 'sahm', name: 'سهم', url: 'sahm.wamdarc.com', color: '#F5841F', srv: 'push' },
+    { id: 'khuta', name: 'خطى', url: 'khuta.wamdarc.com', color: '#FF3E8A', srv: 'push' },
+    { id: 'siraj', name: 'سراج', url: 'siraj.wamdarc.com', color: '#7C4DEB', srv: 'siraj' },
+    { id: 'nabd', name: 'نبض', url: 'nabd.wamdarc.com', color: '#3C6FE0', srv: 'nabd' },
+    { id: 'harf', name: 'حرف', url: 'harf.wamdarc.com', color: '#12897C', srv: 'harf', nopush: true }   // لعبة بدون إشعارات
   ];
   var BY = {}; APPS.forEach(function (a) { BY[a.id] = a; });
   /* مفتاح الإدارة: يبقى للجلسة فقط (sessionStorage) إلا إذا اخترت «تذكّرني».
@@ -559,7 +594,7 @@ main{padding-top:0}
     ramadan: { arT: 'رمضان كريم 🌙', arB: 'مبارك عليكم الشهر، أعاننا الله وإياكم على صيامه وقيامه.', enT: 'Ramadan Kareem 🌙', enB: 'Wishing you a blessed Ramadan.' },
     national: { arT: 'يوم وطني سعيد 🇸🇦', arB: 'كل عام والوطن بخير وعزّ، دام عزّك يا وطن.', enT: 'Happy National Day 🇸🇦', enB: 'Wishing our nation continued glory and prosperity.' },
     update: { arT: 'تحديث جديد ✨', arB: 'وصلت نسخة جديدة. افتح التطبيق ليتحدّث تلقائياً.', enT: 'New update ✨', enB: 'A new version is here. Open the app to update automatically.' },
-    stories: { arT: 'قصص جديدة في سِراج 📚', arB: 'أضفنا حكايات جديدة لأطفالكم. افتحوا سِراج الليلة واكتشفوها 🌙', enT: '', enB: '', only: ['siraj'] }
+    stories: { arT: 'قصص جديدة في سراج 📚', arB: 'أضفنا حكايات جديدة لأطفالكم. افتحوا سراج الليلة واكتشفوها 🌙', enT: '', enB: '', only: ['siraj'] }
   };
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -593,10 +628,10 @@ main{padding-top:0}
   }
 
   /* ---------- الإحصائيات ---------- */
-  var SA = [{ id: 'site', name: 'الموقع', url: 'wamdarc.com', color: '#B9BEC6' }].concat(APPS);
+  var SA = [{ id: 'site', name: 'الموقع', url: 'wamdarc.com', color: '#9AA0B8' }].concat(APPS);
   var SBY = {}; SA.forEach(function (a) { SBY[a.id] = a; });
   var PL = { ios: 'آيفون', android: 'أندرويد', desktop: 'كمبيوتر', other: 'أخرى' };
-  var PLC = { ios: '#F2EFEA', android: '#5BC08A', desktop: '#4DB8F0', other: '#666' };
+  var PLC = { ios: '#7B4BF0', android: '#2FB37A', desktop: '#3C9BE8', other: '#9AA0B8' };
   var DOW = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
   var fmt = function (n) { return Math.round(n || 0).toLocaleString('en-US'); };
   var pct = function (a, b) { return b ? Math.round(a / b * 100) : 0; };
@@ -696,7 +731,7 @@ main{padding-top:0}
     var tot = days.map(function (d) { return sel.reduce(function (n, a) { return n + ((grid[d] || {})[a.id] || 0); }, 0); });
     var max = Math.max(1, Math.max.apply(null, tot));
     var W = 640, H = 210, L = 30, B = 22, cw = (W - L - 4) / days.length, svg = '', step = Math.max(1, Math.ceil(max / 4));
-    for (var y = 0; y <= max; y += step) { var yy = H - B - (y / max) * (H - B - 12); svg += '<line x1="' + L + '" x2="' + W + '" y1="' + yy + '" y2="' + yy + '" stroke="rgba(255,255,255,.07)"/><text x="' + (L - 6) + '" y="' + (yy + 3) + '" text-anchor="end">' + y + '</text>'; }
+    for (var y = 0; y <= max; y += step) { var yy = H - B - (y / max) * (H - B - 12); svg += '<line x1="' + L + '" x2="' + W + '" y1="' + yy + '" y2="' + yy + '" style="stroke:var(--grid)"/><text x="' + (L - 6) + '" y="' + (yy + 3) + '" text-anchor="end">' + y + '</text>'; }
     var every = days.length > 40 ? 15 : days.length > 10 ? 5 : 1;
     days.forEach(function (d, k) {
       var x = L + k * cw, acc = 0, gap = cw > 8 ? 2 : 0.5;
@@ -732,12 +767,12 @@ main{padding-top:0}
     var tp = Object.keys(p).reduce(function (n, k) { return n + p[k]; }, 0), tl = l.ar + l.en;
     var row = function (name, n, tot, color) { return '<div class="kv"><span><i class="sw" style="background:' + color + '"></i>' + name + '</span><b>' + fmt(n) + ' · ' + pct(n, tot) + '%</b></div><div class="bar"><i style="width:' + pct(n, tot) + '%;background:' + color + '"></i></div>'; };
     $('#mix').innerHTML = (Object.keys(p).sort(function (a, b) { return p[b] - p[a]; }).map(function (k) { return row(PL[k] || k, p[k], tp, PLC[k] || '#888'); }).join('') || '<p class="note">—</p>') +
-      (tl ? '<div style="height:10px"></div>' + row('عربي', l.ar, tl, '#FF5A1F') + row('English', l.en, tl, '#9AA0AD') : '');
+      (tl ? '<div style="height:10px"></div>' + row('عربي', l.ar, tl, '#FF8A2A') + row('English', l.en, tl, '#7B4BF0') : '');
   }
   function stat(n, label) { return '<div><b>' + fmt(n) + '</b><span>' + label + '</span></div>'; }
   function drawNabd() {
     var n = data.nabd, el = $('#nabdP');
-    if (!n) { el.innerHTML = '<p class="note">تعذّر الاتصال بخادم نَبْض.</p>'; return; }
+    if (!n) { el.innerHTML = '<p class="note">تعذّر الاتصال بخادم نبض.</p>'; return; }
     var t = n.today || {}, msgs = (t.text || 0) + (t.voice || 0) + (t.photo || 0) + (t.draw || 0);
     var series = {}; (n.series || []).forEach(function (r) { (series[r.day] = series[r.day] || {})[r.k] = r.n; });
     var days = []; for (var i = 13; i >= 0; i--) days.push(new Date((n.now || Date.now()) - i * 864e5 + 3 * 36e5).toISOString().slice(0, 10));
@@ -756,7 +791,7 @@ main{padding-top:0}
   function drawHarf() {
     var h = data.harf, el = $('#harfP');
     if (!el) return;
-    if (!h) { el.innerHTML = '<p class="note">تعذّر الاتصال بخادم حَرف.</p>'; return; }
+    if (!h) { el.innerHTML = '<p class="note">تعذّر الاتصال بخادم حرف.</p>'; return; }
     var dm = {}; (h.daily || []).forEach(function (r) { dm[r.day] = r.n; });
     var days = []; for (var i = 13; i >= 0; i--) days.push(new Date(Date.now() - i * 864e5 + 3 * 36e5).toISOString().slice(0, 10));
     var max = Math.max.apply(null, days.map(function (d) { return dm[d] || 0; }).concat([1]));
@@ -774,10 +809,10 @@ main{padding-top:0}
   }
   function drawSiraj() {
     var s = data.siraj, el = $('#sirajP');
-    if (!s) { el.innerHTML = '<p class="note">تعذّر الاتصال بخادم سِراج.</p>'; return; }
+    if (!s) { el.innerHTML = '<p class="note">تعذّر الاتصال بخادم سراج.</p>'; return; }
     el.innerHTML = '<div class="m4">' + stat(s.families, 'عائلة مربوطة') + stat(s.devices, 'جهاز مربوط') + stat(s.activeWeek, 'نشط هالأسبوع') + stat(s.subs, '🔔 إشعارات') + '</div>' +
       '<div class="kv"><span>أجهزة الإشعارات</span><b>' + fmt(s.parentDevices) + ' وليّ أمر · ' + fmt(s.kidDevices) + ' طفل</b></div>' +
-      '<p class="note">«مربوطة» = العائلات اللي ربطت أكثر من جهاز. كل أجهزة سِراج (حتى غير المربوطة) تظهر في بطاقة سِراج فوق.</p>';
+      '<p class="note">«مربوطة» = العائلات اللي ربطت أكثر من جهاز. كل أجهزة سراج (حتى غير المربوطة) تظهر في بطاقة سراج فوق.</p>';
   }
   function drawFeed(j, now) {
     var only = $('#onlyLive').checked, all = $('#feed').dataset.all === '1';
@@ -871,7 +906,7 @@ main{padding-top:0}
   /* ---------- نظرة عامة + التطبيقات ---------- */
   var SRV = null, HEALTH = {}, COMMITS = null, HEALTH_AT = 0;
   var REPO = { site: 'wamdarc', sahm: 'sahm', falaq: 'falaq', khuta: 'khuta', siraj: 'siraj', nabd: 'nabd', harf: 'harf', admin: 'admin' };
-  function icon(id) { return id === 'harf' ? 'https://harf.wamdarc.com/icons/icon-192.png' : 'https://wamdarc.com/assets/' + id + '/icon.webp'; }
+  function icon(id) { return 'https://wamdarc.com/assets/' + id + '/icon.webp'; }
   function cleanVer(v) { return String(v || '').replace(/^[a-z]+-/i, '').replace(/^v/i, ''); }
   function timed(url) {
     var t0 = performance.now();
@@ -917,14 +952,14 @@ main{padding-top:0}
       '<div class="kpi"><b>' + (j ? fmt(sum(A, 'd7')) : '—') + '</b><span>نشط هالأسبوع</span></div>' +
       '<div class="kpi"><b>' + (j ? fmt(sum(T, 'inst', APPS)) : '—') + '</b><span>مثبّت على الشاشة</span></div>' +
       '<div class="kpi"><b>' + fmt(subs) + '</b><span>مشترك بالإشعارات</span></div>' +
-      '<div class="kpi"><b>' + fmt(fam) + '</b><span>عائلة (نَبْض + سِراج)</span></div>';
+      '<div class="kpi"><b>' + fmt(fam) + '</b><span>عائلة (نبض + سراج)</span></div>';
     // حالة الخدمات
     var items = [{ id: 'site', name: 'الموقع', sub: 'wamdarc.com', img: 'assets/favicon.svg' }].concat(APPS.map(function (a) { return { id: a.id, name: a.name, sub: a.url, img: icon(a.id) }; }));
     var hs = items.map(function (it) {
       var r = HEALTH[it.id]; var st = !r ? '' : r.ok ? 'ok' : 'bad';
       return '<a class="hc" href="https://' + it.sub + '" target="_blank" rel="noopener"><img src="' + it.img + '" alt=""><div><b>' + it.name + (r && r.ver ? ' <span class="tiny" dir="ltr">v' + esc(r.ver) + '</span>' : '') + '</b><small>' + (r ? (r.ok ? r.ms + ' ms' : 'لا يستجيب') : 'نفحص…') + ' · ' + it.sub + '</small></div><i class="' + st + '"></i></a>';
     });
-    [['push', 'خادم الإشعارات', 'push-wamdarc'], ['siraj', 'خادم سِراج', 'siraj-api'], ['nabd', 'خادم نَبْض', 'nabd-api'], ['harf', 'خادم حَرف', 'harf-api']].forEach(function (x) {
+    [['push', 'خادم الإشعارات', 'push-wamdarc'], ['siraj', 'خادم سراج', 'siraj-api'], ['nabd', 'خادم نبض', 'nabd-api'], ['harf', 'خادم حرف', 'harf-api']].forEach(function (x) {
       var r = SRV && SRV[x[0]]; var st = !r ? '' : r.ok ? 'ok' : 'bad';
       hs.push('<div class="hc"><span class="si">⚙️</span><div><b>' + x[1] + '</b><small>' + (r ? (r.ok ? r.ms + ' ms' : 'غير متصل') : '—') + ' · ' + x[2] + '</small></div><i class="' + st + '"></i></div>');
     });
@@ -932,7 +967,7 @@ main{padding-top:0}
     $('#healthAt').textContent = HEALTH_AT ? 'فُحص ' + new Date(HEALTH_AT).toLocaleTimeString('ar-SA-u-ca-gregory-nu-latn', { hour: 'numeric', minute: '2-digit' }) : '';
     // تنبيهات
     var al = [];
-    if (SRV) [['push', 'خادم الإشعارات'], ['siraj', 'خادم سِراج'], ['nabd', 'خادم نَبْض'], ['harf', 'خادم حَرف']].forEach(function (x) { if (SRV[x[0]] && !SRV[x[0]].ok) al.push(['bad', '⚠️ ' + x[1] + ': ' + errText(SRV[x[0]].e)]); });
+    if (SRV) [['push', 'خادم الإشعارات'], ['siraj', 'خادم سراج'], ['nabd', 'خادم نبض'], ['harf', 'خادم حرف']].forEach(function (x) { if (SRV[x[0]] && !SRV[x[0]].ok) al.push(['bad', '⚠️ ' + x[1] + ': ' + errText(SRV[x[0]].e)]); });
     items.forEach(function (it) { var r = HEALTH[it.id]; if (r && !r.ok) al.push(['bad', '⚠️ ' + it.name + ' (' + it.sub + ') لا يستجيب الآن.']); });
     APPS.forEach(function (a) { var l = latestOf(a.id); if (l.pct != null && l.tot >= 5 && l.pct < 50) al.push(['warn', '🔄 ' + a.name + ': ' + l.pct + '% فقط على آخر إصدار (v' + esc(HEALTH[a.id].ver) + '). أرسل إشعار «تحديث جديد» ليفتحوه ويتحدّث.']); });
     if (!al.length && HEALTH_AT) al.push(['ok', '✓ كل شي يشتغل تمام.']);
@@ -1065,7 +1100,7 @@ main{padding-top:0}
   };
   $('#cfOff').onclick = function () { if (confirm('إيقاف الرسالة في ' + (MG.app === 'all' ? 'كل التطبيقات' : BY[MG.app].name) + '؟')) saveCfg(null); };
 
-  /* قصص سِراج */
+  /* قصص سراج */
   function loadStories() {
     api(PUSH, '/admin/stories').then(function (j) { MG.stories = j.stories || []; drawStories(); }, function (e) { $('#stList').innerHTML = '<li><span class="note">' + esc(errText(e)) + '</span></li>'; });
   }
@@ -1077,7 +1112,7 @@ main{padding-top:0}
     }).join('') || '<li><span class="note">ما أضفت قصص بعد. اضغط «+ قصة جديدة».</span></li>';
     $('#stList').querySelectorAll('[data-ed]').forEach(function (b) { b.onclick = function () { editStory(MG.stories.filter(function (s) { return s.id === b.dataset.ed; })[0]); }; });
     $('#stList').querySelectorAll('[data-del]').forEach(function (b) { b.onclick = function () {
-      if (!confirm('حذف هذه القصة من سِراج عند كل العائلات؟')) return;
+      if (!confirm('حذف هذه القصة من سراج عند كل العائلات؟')) return;
       api(PUSH, '/admin/stories/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: b.dataset.del }) }).then(loadStories, function (e) { alert(errText(e)); });
     }; });
   }
@@ -1119,7 +1154,7 @@ main{padding-top:0}
     var btn = $('#stSave'); btn.disabled = true;
     api(PUSH, '/admin/stories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: MG.edit, active: $('#stActive').checked,
       data: { title: title, value: $('#stValue').value.trim(), scene: $('#stScene').value, date: m && d ? m + '-' + d : '', pages: pages } }) })
-      .then(function () { show($('#stMsg'), 'ok', '✓ انحفظت. تظهر في سِراج عند العائلات من ثاني مرة يفتحون فيها التطبيق.'); $('#stEd').hidden = true; loadStories(); }, function (e) { show($('#stMsg'), 'bad', e && e.error === 'story-invalid' ? 'تأكد من العنوان وصفحتين على الأقل.' : errText(e)); })
+      .then(function () { show($('#stMsg'), 'ok', '✓ انحفظت. تظهر في سراج عند العائلات من ثاني مرة يفتحون فيها التطبيق.'); $('#stEd').hidden = true; loadStories(); }, function (e) { show($('#stMsg'), 'bad', e && e.error === 'story-invalid' ? 'تأكد من العنوان وصفحتين على الأقل.' : errText(e)); })
       .then(function () { btn.disabled = false; });
   };
 
@@ -1129,7 +1164,7 @@ main{padding-top:0}
       var miss = [];
       if (!j.mail) miss.push('ربط الإيميل (MAIL) ما اشتغل — تأكد إن Email Routing مفعّل لـ wamdarc.com في Cloudflare.');
       if (!j.reportTo) miss.push('أضف متغير سري اسمه REPORT_TO في push-wamdarc ← Settings ← Variables and Secrets، وقيمته إيميلك (لازم يكون Destination address مفعّل في Email Routing).');
-      if (!j.siraj || !j.nabd) miss.push('الاتصال الداخلي بسِراج/نَبْض ما اشتغل بعد (Service bindings).');
+      if (!j.siraj || !j.nabd) miss.push('الاتصال الداخلي بسراج/نبض ما اشتغل بعد (Service bindings).');
       $('#repSetup').hidden = !miss.length; $('#repSetup').innerHTML = miss.map(esc).join('<br>');
       $('#repState').innerHTML = miss.length ? '⚠️ يحتاج إعداد' : '<span style="color:var(--ok)">● مفعّل — كل أحد ٩ص</span>';
     }, function () { $('#repState').textContent = ''; });
@@ -1228,11 +1263,14 @@ main{padding-top:0}
     renderHome();
   }
 
+  var tries = 0;
   function login() {
     KEY = $('#key').value.trim();
-    if (!KEY) return;
+    if (!KEY) { show($('#loginMsg'), 'bad', 'اكتب مفتاح الإدارة أولاً.'); $('#key').focus(); return; }
     REM = !!$('#remember').checked;
+    var b = $('#keyGo'); b.disabled = true; b.textContent = 'نتحقق من المفتاح…'; $('#loginMsg').className = 'msg';
     load().then(function () {
+      tries = 0;
       try {
         sessionStorage.setItem('wamd-admin', KEY);
         if (REM) { localStorage.setItem('wamd-admin', KEY); localStorage.setItem('wamd-admin-rem', '1'); }
@@ -1240,8 +1278,39 @@ main{padding-top:0}
       } catch (e) {}
       $('#key').value = '';
     })
-      .catch(function (e) { show($('#loginMsg'), 'bad', errText(e)); });
+      .catch(function (e) {
+        KEY = '';
+        var t = errText(e);
+        if (e && (e.error === 'unauthorized' || e.error === 'forbidden')) { tries++; t = 'المفتاح غير صحيح' + (tries > 1 ? ' (محاولة خاطئة رقم ' + tries + ')' : '') + '.\nتأكد من الأحرف الكبيرة والصغيرة. بعد محاولات خاطئة كثيرة يُقفل الدخول ٣٠ دقيقة.'; }
+        show($('#loginMsg'), 'bad', t); $('#key').select();
+      })
+      .then(function () { b.disabled = false; b.textContent = 'دخول'; });
   }
+  /* إظهار/إخفاء المفتاح، وتنبيه الأحرف الكبيرة */
+  $('#eye').onclick = function () {
+    var k = $('#key'), on = k.type === 'password';
+    k.type = on ? 'text' : 'password'; this.setAttribute('aria-pressed', on ? 'true' : 'false');
+    this.setAttribute('aria-label', on ? 'إخفاء المفتاح' : 'إظهار المفتاح'); k.focus();
+  };
+  ['keydown', 'keyup'].forEach(function (ev) { $('#key').addEventListener(ev, function (e) { if (e.getModifierState) $('#caps').hidden = !e.getModifierState('CapsLock'); }); });
+  $('#key').addEventListener('blur', function () { $('#caps').hidden = true; });
+  /* المظهر: نهار (افتراضي) / ليل */
+  function themeUI() {
+    var n = document.documentElement.dataset.d === 'night';
+    document.querySelectorAll('.themeBtn').forEach(function (b) { b.setAttribute('aria-label', n ? 'الوضع الفاتح' : 'الوضع الداكن'); b.setAttribute('aria-pressed', n ? 'true' : 'false'); });
+    $('#tc').content = n ? '#120C33' : '#F6F5FC';
+  }
+  document.querySelectorAll('.themeBtn').forEach(function (b) {
+    b.onclick = function () {
+      var n = document.documentElement.dataset.d !== 'night';
+      document.documentElement.dataset.d = n ? 'night' : 'day';
+      try { localStorage.setItem('wa-admin-theme', n ? 'night' : 'day'); } catch (e) {}
+      themeUI();
+    };
+  });
+  themeUI();
+  /* التبويب المختار يبان كامل في الجوال */
+  document.querySelector('.tabs').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b && b.scrollIntoView) b.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' }); });
   $('#keyGo').onclick = login;
   $('#key').onkeydown = function (e) { if (e.key === 'Enter') login(); };
   $('#refresh').onclick = function () { load().catch(function () {}); };
@@ -1291,9 +1360,9 @@ main{padding-top:0}
       .then(function (r) { out.push('✓ ' + pushApps.map(function (a) { return BY[a].name; }).join(' و') + ': ' + (r.queued ? r.queued + ' مشترك، يكتمل خلال ' + Math.ceil(r.queued / r.perTick) + ' دقيقة تقريباً' : 'ما فيه مشتركين')); },
         function (e) { out.push('✗ فلق/سهم/خطى: ' + errText(e)); }));
     if (apps.indexOf('siraj') >= 0) jobs.push(api(SIRAJ, '/broadcast', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ar: { title: t, body: b } }) })
-      .then(function (r) { out.push('✓ سِراج: ' + (r.sent ? r.sent + ' جهاز' : 'ما فيه مشتركين')); }, function (e) { out.push('✗ سِراج: ' + errText(e)); }));
+      .then(function (r) { out.push('✓ سراج: ' + (r.sent ? r.sent + ' جهاز' : 'ما فيه مشتركين')); }, function (e) { out.push('✗ سراج: ' + errText(e)); }));
     if (apps.indexOf('nabd') >= 0) jobs.push(api(NABD, '/broadcast', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ar: { title: t, body: b } }) })
-      .then(function (r) { out.push('✓ نَبْض: ' + (r.sent ? r.sent + ' جهاز' : 'ما فيه مشتركين')); }, function (e) { out.push('✗ نَبْض: ' + errText(e)); }));
+      .then(function (r) { out.push('✓ نبض: ' + (r.sent ? r.sent + ' جهاز' : 'ما فيه مشتركين')); }, function (e) { out.push('✗ نبض: ' + errText(e)); }));
     Promise.all(jobs).then(function () {
       show($('#sendMsg'), out.some(function (x) { return x[0] === '✗'; }) ? 'bad' : 'ok', out.join('\n'));
       load().catch(function () {});
